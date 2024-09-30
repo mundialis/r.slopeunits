@@ -9,4 +9,4 @@ exclude = .git
 max-line-length = 80
 
 per-file-ignores =
-   ./v.example.py: F821, E501
+   ./r.slopeunits.py: F821, E501

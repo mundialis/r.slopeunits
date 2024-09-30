@@ -117,7 +117,7 @@
 # % guisection: flags
 # %end
 
-#import sys
+# import sys
 import grass.script as grass
 import atexit
 import os

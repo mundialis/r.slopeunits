@@ -199,7 +199,9 @@ def slope_units(
     exp = "$out = sin($a)"
     grass.mapcalc(exp, out="seno", a="aspectslutmp", quiet=True)
 
-    grass.run_command("g.remove", type="raster", name="aspectslutmp", flags="f", quiet=True)
+    grass.run_command(
+        "g.remove", type="raster", name="aspectslutmp", flags="f", quiet=True
+    )
     rm_rasters.append("coseno")
     rm_rasters.append("seno")
 
@@ -228,7 +230,9 @@ def slope_units(
 
         # generating the half-basins
         ###        grass.run_command('r.watershed', elevation=dem, hbasin='slu_r_tmp', thresh=thc, flags='abs', overwrite=True, quiet=True)
-        grass.run_command("g.remove", type="raster", name="slu_r_tmp", flags="f", quiet=True)
+        grass.run_command(
+            "g.remove", type="raster", name="slu_r_tmp", flags="f", quiet=True
+        )
         grass.run_command(
             "r.watershed",
             elevation=dem,
@@ -240,15 +244,15 @@ def slope_units(
         rm_rasters.append("slu_r_tmp")
 
         # remove output map from previous run
-        grass.run_command("g.remove", type="raster", name="slu_r", flags="f", quiet=True)
+        grass.run_command(
+            "g.remove", type="raster", name="slu_r", flags="f", quiet=True
+        )
         if options["plainsmap"]:
             exp = "$out = if(isnull($a), $b, null())"
-            grass.mapcalc(
-                exp, out="slu_r", a=plains, b="slu_r_tmp", quiet=True
-            )
+            grass.mapcalc(exp, out="slu_r", a=plains, b="slu_r_tmp", quiet=True)
         else:
             grass.run_command("g.copy", rast="slu_r_tmp,slu_r", quiet=True)
-        
+
         rm_rasters.append("slu_r")
 
         grass.run_command("r.mask", flags="r", quiet=True)
@@ -301,7 +305,9 @@ def slope_units(
 
         # selecting half-basins where area is larger than the minimum area and the average
         # unit vector is smaller than the unit vector threshold
-        grass.run_command("g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True)
+        grass.run_command(
+            "g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True
+        )
         if options["areamax"]:
             exp = "$out = if($a > $f || ($a > $b && $c > $d), $g, null())"
             grass.mapcalc(
@@ -353,9 +359,7 @@ def slope_units(
                 "g.copy", rast=("slu_r_todo,slu_r_todo_%d") % counter, quiet=True
             )
             rm_rasters.append("slu_r_todo_%s" % counter)
-            grass.run_command(
-                "r.mask", raster="slu_r_todo", flags="i", quiet=True
-            )
+            grass.run_command("r.mask", raster="slu_r_todo", flags="i", quiet=True)
             grass.run_command(
                 "r.patch",
                 input=("slu_r_" + str(last_counter), "slu_r"),
@@ -388,14 +392,12 @@ def slope_units(
 
             # rejecting partition if average area of new half-basins is less than amin;
             # not effective on large areas, if areamax is present
-            if counter > 0: # counter is always > 0 ?
+            if counter > 0:  # counter is always > 0 ?
                 if options["areamax"]:
                     # this block does not make sense,
                     # count_prova_<last_counter> has been calculated above
                     if counter == 1:
-                        grass.mapcalc(
-                            "$out = 1", out="count_prova_0", quiet=True
-                        )
+                        grass.mapcalc("$out = 1", out="count_prova_0", quiet=True)
                     exp = "$out = if($a > $b, 1, null())"
                     # this
                     # a="count_prova_" + str(last_counter - 1)
@@ -503,7 +505,13 @@ def slope_units(
                             output="slu_r_" + str(counter),
                             quiet=True,
                         )
-                        grass.run_command("g.remove", type="raster", name="slu_r_tmp_{counter}", flags="f", quiet=True)
+                        grass.run_command(
+                            "g.remove",
+                            type="raster",
+                            name="slu_r_tmp_{counter}",
+                            flags="f",
+                            quiet=True,
+                        )
                         rm_rasters.append("slu_r_%d" % counter)
                     else:
                         grass.run_command("r.mask", flags="r", quiet=True)
@@ -549,9 +557,7 @@ def slope_units(
 
     # preparing the outputs
     exp = "$out = $a"
-    grass.mapcalc(
-        exp, out="slumap_1", a="slu_r_final", quiet=True
-    )
+    grass.mapcalc(exp, out="slumap_1", a="slu_r_final", quiet=True)
     # add areas where DEM exists, and SUs do not exist
     if options["plainsmap"]:
         exp = "$out = if(isnull($a), if(isnull($b), if(isnull($c), null(), 1), null()), $a)"
@@ -565,25 +571,17 @@ def slope_units(
         )
     else:
         exp = "$out = if(isnull($a), if(isnull($c), null(), 1), $a)"
-        grass.mapcalc(
-            exp, a="slumap_1", c=dem, out="slumap_2", quiet=True
-        )
-    grass.run_command(
-        "r.clump", input="slumap_2", output=slumap, quiet=True
-    )
+        grass.mapcalc(exp, a="slumap_1", c=dem, out="slumap_2", quiet=True)
+    grass.run_command("r.clump", input="slumap_2", output=slumap, quiet=True)
     grass.run_command("g.remove", type="raster", name="slumap_1", flags="f", quiet=True)
     grass.run_command("g.remove", type="raster", name="slumap_2", flags="f", quiet=True)
 
-    grass.run_command(
-        "r.colors", map="slu_r_final", color="random", quiet=True
-    )
+    grass.run_command("r.colors", map="slu_r_final", color="random", quiet=True)
 
     if circvarmap:
         grass.message("Writing out %s" % circvarmap)
         exp = "$out = $a"
-        grass.mapcalc(
-            exp, out=circvarmap, a="cvar_final", quiet=True
-        )
+        grass.mapcalc(exp, out=circvarmap, a="cvar_final", quiet=True)
     if areamap:
         grass.message("Writing out %s" % areamap)
         exp = "$out = $a * $b * $c"
@@ -598,18 +596,34 @@ def slope_units(
 
     # clean up
     grass.run_command("r.mask", flags="r", quiet=True)
-    grass.run_command("g.remove", type="raster", name="seno,coseno", flags="f", quiet=True)
+    grass.run_command(
+        "g.remove", type="raster", name="seno,coseno", flags="f", quiet=True
+    )
 
-    grass.run_command("g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True)
-    grass.run_command("g.remove", type="raster", name="slu_r_final,cvar_final,count_final,slu_r_todo_final", flags="f", quiet=True)
+    grass.run_command(
+        "g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True
+    )
+    grass.run_command(
+        "g.remove",
+        type="raster",
+        name="slu_r_final,cvar_final,count_final,slu_r_todo_final",
+        flags="f",
+        quiet=True,
+    )
 
     for i in range(counter + 1):
         mapname = "slu_r_" + str(i)
-        grass.run_command("g.remove", type="raster", name=mapname, flags="f", quiet=True)
+        grass.run_command(
+            "g.remove", type="raster", name=mapname, flags="f", quiet=True
+        )
         mapname = "cvar_" + str(i)
-        grass.run_command("g.remove", type="raster", name=mapname, flags="f", quiet=True)
+        grass.run_command(
+            "g.remove", type="raster", name=mapname, flags="f", quiet=True
+        )
         mapname = "count_" + str(i)
-        grass.run_command("g.remove", type="raster", name=mapname, flags="f", quiet=True)
+        grass.run_command(
+            "g.remove", type="raster", name=mapname, flags="f", quiet=True
+        )
         mapname = "slu_r_todo_" + str(i)
 
 
@@ -619,50 +633,169 @@ def clean_method_3(input_vect, output_vect, minarea):
     ewres = region["ewres"]
     smarea = 10 * nsres * ewres
 
-    grass.run_command("v.clean", input=input_vect, output="slu_clean", tool="rmarea", threshold=smarea, quiet=True)
-    grass.run_command("v.db.addcolumn", map="slu_clean", columns="area integer, perimetro integer", quiet=True)
-    grass.run_command("v.to.db", map="slu_clean", option="area", columns="area", quiet=True)
-    grass.run_command("v.to.db", map="slu_clean", option="perimeter", columns="perimetro", quiet=True)
-    grass.run_command("v.db.droprow", input="slu_clean", where="area is null", output="slu_area", quiet=True)
+    grass.run_command(
+        "v.clean",
+        input=input_vect,
+        output="slu_clean",
+        tool="rmarea",
+        threshold=smarea,
+        quiet=True,
+    )
+    grass.run_command(
+        "v.db.addcolumn",
+        map="slu_clean",
+        columns="area integer, perimetro integer",
+        quiet=True,
+    )
+    grass.run_command(
+        "v.to.db", map="slu_clean", option="area", columns="area", quiet=True
+    )
+    grass.run_command(
+        "v.to.db", map="slu_clean", option="perimeter", columns="perimetro", quiet=True
+    )
+    grass.run_command(
+        "v.db.droprow",
+        input="slu_clean",
+        where="area is null",
+        output="slu_area",
+        quiet=True,
+    )
     rm_vectors.append("slu_clean")
 
     key = grass.vector_db(map="slu_area")[1]["key"]
-    lista = grass.read_command("v.db.select", map="slu_area", columns=key, where="area <= {minarea}", flags="c")
+    lista = grass.read_command(
+        "v.db.select", map="slu_area", columns=key, where="area <= {minarea}", flags="c"
+    )
     lista = lista.splitlines()
     buchi = ",".join(lista)
     totalebuchi = len(lista)
-    grass.run_command("v.extract", input="slu_area", cats=buchi, output="slu_buchi", type="area", quiet=True)
-    grass.run_command("v.to.rast", input="slu_buchi", output="slu_buchi", use="cat" --o --q)
+    grass.run_command(
+        "v.extract",
+        input="slu_area",
+        cats=buchi,
+        output="slu_buchi",
+        type="area",
+        quiet=True,
+    )
+    grass.run_command(
+        "v.to.rast", input="slu_buchi", output="slu_buchi", use="cat" - -o - -q
+    )
 
     key = grass.vector_db(map="slu_area")[1]["key"]
-    lista = grass.read_command("v.db.select", map="slu_area", columns=key, where="area > {minarea}", flags="c")
+    lista = grass.read_command(
+        "v.db.select", map="slu_area", columns=key, where="area > {minarea}", flags="c"
+    )
     lista = lista.splitlines()
     nobuchi = ",".join(lista)
-    grass.run_command("v.extract", input="slu_area", cats=nobuchi, output="slu_nobuchi", type="area", quiet=True)
-    grass.run_command("v.to.rast", input="slu_nobuchi", output="slu_nobuchi", use="cat" --o --q)
-    grass.run_command("v.category", input="slu_area", output="slu_bordi", layer=2, type="boundary", option="add", quiet=True)
-    grass.run_command("v.db.addtable", map="slu_bordi", layer=2, columns="left integer,right integer,lunghezza integer", quiet=True)
-    grass.run_command("v.to.db", map="slu_bordi", option="sides", columns="left,right", layer=2, type="boundary", quiet=True)
-    grass.run_command("v.to.db", map="slu_bordi", option="length", columns="lunghezza", layer=2, type="boundary", quiet=True)
-    grass.run_command("v.to.rast", input="slu_area", output="slu_area", use="cat", quiet=True)
+    grass.run_command(
+        "v.extract",
+        input="slu_area",
+        cats=nobuchi,
+        output="slu_nobuchi",
+        type="area",
+        quiet=True,
+    )
+    grass.run_command(
+        "v.to.rast", input="slu_nobuchi", output="slu_nobuchi", use="cat" - -o - -q
+    )
+    grass.run_command(
+        "v.category",
+        input="slu_area",
+        output="slu_bordi",
+        layer=2,
+        type="boundary",
+        option="add",
+        quiet=True,
+    )
+    grass.run_command(
+        "v.db.addtable",
+        map="slu_bordi",
+        layer=2,
+        columns="left integer,right integer,lunghezza integer",
+        quiet=True,
+    )
+    grass.run_command(
+        "v.to.db",
+        map="slu_bordi",
+        option="sides",
+        columns="left,right",
+        layer=2,
+        type="boundary",
+        quiet=True,
+    )
+    grass.run_command(
+        "v.to.db",
+        map="slu_bordi",
+        option="length",
+        columns="lunghezza",
+        layer=2,
+        type="boundary",
+        quiet=True,
+    )
+    grass.run_command(
+        "v.to.rast", input="slu_area", output="slu_area", use="cat", quiet=True
+    )
     # TODO: different names than coseno and seno, these rasters are already created
     grass.mapcalc("coseno = cos(aspect_slu)", quiet=True)
     grass.mapcalc("seno = sin(aspect_slu)", quiet=True)
 
-    grass.run_command("r.stats.zonal", base="slu_area", cover="coseno", method="count", output="count", quiet=True)
-    grass.run_command("r.stats.zonal", base="slu_area", cover="coseno", method="sum", output="cumcos", quiet=True)
-    grass.run_command("r.stats.zonal", base="slu_area", cover="seno", method="sum", output="sumsin", quiet=True)
+    grass.run_command(
+        "r.stats.zonal",
+        base="slu_area",
+        cover="coseno",
+        method="count",
+        output="count",
+        quiet=True,
+    )
+    grass.run_command(
+        "r.stats.zonal",
+        base="slu_area",
+        cover="coseno",
+        method="sum",
+        output="cumcos",
+        quiet=True,
+    )
+    grass.run_command(
+        "r.stats.zonal",
+        base="slu_area",
+        cover="seno",
+        method="sum",
+        output="sumsin",
+        quiet=True,
+    )
 
     grass.mapcalc("cos_medio = sumcos / count", quiet=True)
     grass.mapcalc("sin_medio = sumsin / count", quiet=True)
-    grass.run_command("r.to.vect", input="cos_medio", output="cos_medio", type="area", quiet=True)
-    grass.run_command("r.to.vect", input="sin_medio", output="sin_medio", type="area", quiet=True)
-    grass.run_command("v.overlay", ainput="slu_area", binput="cos_medio", operator="and",
-                      atype="area", btype="area", output="cos_medio_over", quiet=True)
-    grass.run_command("v.overlay", ainput="slu_area", binput="sin_medio", operator="and",
-                      atype="area", btype="area", output="sin_medio_over", quiet=True)
+    grass.run_command(
+        "r.to.vect", input="cos_medio", output="cos_medio", type="area", quiet=True
+    )
+    grass.run_command(
+        "r.to.vect", input="sin_medio", output="sin_medio", type="area", quiet=True
+    )
+    grass.run_command(
+        "v.overlay",
+        ainput="slu_area",
+        binput="cos_medio",
+        operator="and",
+        atype="area",
+        btype="area",
+        output="cos_medio_over",
+        quiet=True,
+    )
+    grass.run_command(
+        "v.overlay",
+        ainput="slu_area",
+        binput="sin_medio",
+        operator="and",
+        atype="area",
+        btype="area",
+        output="sin_medio_over",
+        quiet=True,
+    )
 
-    pulire = grass.read_command("v.category", input="slu_buchi", option="print", quiet=True)
+    pulire = grass.read_command(
+        "v.category", input="slu_buchi", option="print", quiet=True
+    )
     pulire = pulire.splitlines()
 
     grass.run_command("g.copy", vector="slu_area,{output_vect}", quiet=True)
@@ -670,83 +803,241 @@ def clean_method_3(input_vect, output_vect, minarea):
     ico = 1
     for i in pulire:
         inti = int(i)
-        lista1 = grass.read_command("db.select", sql="select b2.right from slu_bordi_2 b2 where b2.left = {i} and b2.right <> -1", flags="c")
-        lista2 = grass.read_command("db.select" sql="select b2.left from slu_bordi_2 b2 where b2.left <> -1 and b2.right = {inti}", flags="c")
+        lista1 = grass.read_command(
+            "db.select",
+            sql="select b2.right from slu_bordi_2 b2 where b2.left = {i} and b2.right <> -1",
+            flags="c",
+        )
+        lista2 = grass.read_command(
+            "db.select",
+            sql="select b2.left from slu_bordi_2 b2 where b2.left <> -1 and b2.right = {inti}",
+            flags="c",
+        )
         vicini = lista1.splitlines()
         vicini.extend(lista2.splitlines)
         vicini = sorted(set(vicini))
         if len(vicini) > 0:
-            grass.message(" --- --- -- buco numero {ico} di {totalebuchi}, cat: {i}, vicini: {vicini}")
+            grass.message(
+                " --- --- -- buco numero {ico} di {totalebuchi}, cat: {i}, vicini: {vicini}"
+            )
             ico = ico + 1
             grass.message("vicini: {vicini}")
-            grass.run_command("v.extract", input=output_vect, cats=",".join(vicini), output="intorno", type="area", quiet=True)
-            chk_intorno = grass.read_command("v.category", input="intorno", type="centroid", option="print", quiet=True)
+            grass.run_command(
+                "v.extract",
+                input=output_vect,
+                cats=",".join(vicini),
+                output="intorno",
+                type="area",
+                quiet=True,
+            )
+            chk_intorno = grass.read_command(
+                "v.category",
+                input="intorno",
+                type="centroid",
+                option="print",
+                quiet=True,
+            )
             chk_intorno = chk_intorno.splitlines()
             if len(chk_intorno) > 0:
                 # potrei voler cambiare questo perche' quando ci sono buchi contigui fa un po' di casino
-                grass.run_command("v.overlay", ainput="intorno", binput="slu_nobuchi", output="intorno_OK",
-                                  atype="area", btype="area", olayer="0,1,0", operator="and", quiet=True)
+                grass.run_command(
+                    "v.overlay",
+                    ainput="intorno",
+                    binput="slu_nobuchi",
+                    output="intorno_OK",
+                    atype="area",
+                    btype="area",
+                    olayer="0,1,0",
+                    operator="and",
+                    quiet=True,
+                )
 
-                cos_buco = grass.read_command("v.db.select", map="cos_medio_over", where="a_cat={i}", columns="b_value", flags="c", quiet=True)
-                sin_buco = grass.read_command("v.db.select", map="sin_medio_over", where="a_cat={i}", columns="b_value", flags="c", quiet=True)
+                cos_buco = grass.read_command(
+                    "v.db.select",
+                    map="cos_medio_over",
+                    where="a_cat={i}",
+                    columns="b_value",
+                    flags="c",
+                    quiet=True,
+                )
+                sin_buco = grass.read_command(
+                    "v.db.select",
+                    map="sin_medio_over",
+                    where="a_cat={i}",
+                    columns="b_value",
+                    flags="c",
+                    quiet=True,
+                )
                 grass.message("buco cat {i}: cos={cos_buco} sin={sin_buco}")
                 massimo = -10000
                 jmax = 0
-                loop = grass.read_command("v.category", input="intorno_OK", option="print", quiet=True)
+                loop = grass.read_command(
+                    "v.category", input="intorno_OK", option="print", quiet=True
+                )
                 loop = loop.splitlines()
                 for j in loop:
                     j = int(j)
-                    cos_j = grass.read_command("v.db.select", map="cos_medio_over" where="a_cat={j}", columns="b_value", flags="c", quiet=True)
-                    sin_j = grass.read_command("v.db.select", map="sin_medio_over", where="a_cat={j}", columns="b_value", flags="c", quiet=True)
-                    dotpr = (float(cos_buco) * float(cos_j) + float(sin_buco) * float(sin_j)) * 10000
+                    cos_j = grass.read_command(
+                        "v.db.select",
+                        map="cos_medio_over",
+                        where="a_cat={j}",
+                        columns="b_value",
+                        flags="c",
+                        quiet=True,
+                    )
+                    sin_j = grass.read_command(
+                        "v.db.select",
+                        map="sin_medio_over",
+                        where="a_cat={j}",
+                        columns="b_value",
+                        flags="c",
+                        quiet=True,
+                    )
+                    dotpr = (
+                        float(cos_buco) * float(cos_j) + float(sin_buco) * float(sin_j)
+                    ) * 10000
                     if dotpr >= massimo and dotpr > 0:
                         massimo = dotpr
                         jmax = j
 
-                    grass.message("i: {i} j: {j} cos_j: {cos_j} sin_j: {sin_j} dotpr: {dotpr} jmax: {jmax}")
+                    grass.message(
+                        "i: {i} j: {j} cos_j: {cos_j} sin_j: {sin_j} dotpr: {dotpr} jmax: {jmax}"
+                    )
 
                 grass.message("massimo: {massimo} per j={jmax}")
                 if jmax > 0:
-                    lunghezza = grass.read_command("db.select", sql="select b2.lunghezza from slu_bordi_2 b2 where (b2.left={i} and b2.right={jmax}) or (b2.left={jmax} and b2.right={i})", flags="c", quiet=True)
-                    perimetro = grass.read_command("v.db.select", map="slu_clean", columns="perimetro", where="cat={i}", flags="c", quiet=True)
+                    lunghezza = grass.read_command(
+                        "db.select",
+                        sql="select b2.lunghezza from slu_bordi_2 b2 where (b2.left={i} and b2.right={jmax}) or (b2.left={jmax} and b2.right={i})",
+                        flags="c",
+                        quiet=True,
+                    )
+                    perimetro = grass.read_command(
+                        "v.db.select",
+                        map="slu_clean",
+                        columns="perimetro",
+                        where="cat={i}",
+                        flags="c",
+                        quiet=True,
+                    )
                     lunghezza = float(lunghezza)
                     perimetro = float(perimetro)
                     if lunghezza > 0 and perimetro > 0:
                         frazione = lunghezza / perimetro * 10000
                         if frazione > 500:
-                            grass.message("lungh: {lunghezza}; perim: {perimetro}; fract: {frazione}")
-                            grass.run_command("v.extract", input=output_vect, output="slu_i", cats="{i},{jmax}", new={jmax}, flags="d", quiet=True)
-                            grass.run_command("v.overlay", ainput=output_vect, binput="slu_i", atype="area", btype="area", operator="not", olayer="0,1,0", output="slu_j", quiet=True)
-                            grass.run_command("v.overlay", ainput="slu_i", binput="slu_j", atype="area", btype="area", operator="or", output="slu_k", olayer="1,0,0", quiet=True)
-                            grass.run_command("v.db.addcolumn", map="slu_k", column="newcat integer", quiet=True)
-                            grass.run_command("v.db.update", map="slu_k", layer=1, column="newcat", qcolumn="a_cat", where="a_cat is not null", quiet=True)
-                            grass.run_command("v.db.update", map="slu_k", layer=1, column="newcat", qcolumn="b_cat", where="b_cat is not null", quiet=True)
-                            grass.run_command("v.reclass", input="slu_k", output=output_vect, column="newcat", quiet=True)
-                            grass.run_command("v.db.addtable", map=output_vect, quiet=True)
-                            grass.run_command("v.db.addcolumn", map=output_vect, columns="area integer", quiet=True)
-                            grass.run_command("v.to.db", map=output_vect, option="area", columns="area", quiet=True)
-                            grass.run_command("g.remove", type="vector", name="slu_i,slu_j,slu_k", flags="f", quiet=True)
+                            grass.message(
+                                "lungh: {lunghezza}; perim: {perimetro}; fract: {frazione}"
+                            )
+                            grass.run_command(
+                                "v.extract",
+                                input=output_vect,
+                                output="slu_i",
+                                cats="{i},{jmax}",
+                                new={jmax},
+                                flags="d",
+                                quiet=True,
+                            )
+                            grass.run_command(
+                                "v.overlay",
+                                ainput=output_vect,
+                                binput="slu_i",
+                                atype="area",
+                                btype="area",
+                                operator="not",
+                                olayer="0,1,0",
+                                output="slu_j",
+                                quiet=True,
+                            )
+                            grass.run_command(
+                                "v.overlay",
+                                ainput="slu_i",
+                                binput="slu_j",
+                                atype="area",
+                                btype="area",
+                                operator="or",
+                                output="slu_k",
+                                olayer="1,0,0",
+                                quiet=True,
+                            )
+                            grass.run_command(
+                                "v.db.addcolumn",
+                                map="slu_k",
+                                column="newcat integer",
+                                quiet=True,
+                            )
+                            grass.run_command(
+                                "v.db.update",
+                                map="slu_k",
+                                layer=1,
+                                column="newcat",
+                                qcolumn="a_cat",
+                                where="a_cat is not null",
+                                quiet=True,
+                            )
+                            grass.run_command(
+                                "v.db.update",
+                                map="slu_k",
+                                layer=1,
+                                column="newcat",
+                                qcolumn="b_cat",
+                                where="b_cat is not null",
+                                quiet=True,
+                            )
+                            grass.run_command(
+                                "v.reclass",
+                                input="slu_k",
+                                output=output_vect,
+                                column="newcat",
+                                quiet=True,
+                            )
+                            grass.run_command(
+                                "v.db.addtable", map=output_vect, quiet=True
+                            )
+                            grass.run_command(
+                                "v.db.addcolumn",
+                                map=output_vect,
+                                columns="area integer",
+                                quiet=True,
+                            )
+                            grass.run_command(
+                                "v.to.db",
+                                map=output_vect,
+                                option="area",
+                                columns="area",
+                                quiet=True,
+                            )
+                            grass.run_command(
+                                "g.remove",
+                                type="vector",
+                                name="slu_i,slu_j,slu_k",
+                                flags="f",
+                                quiet=True,
+                            )
                     # lunghezza and perimetro
                 # jmax
-                grass.run_command("g.remove", type="vector", name="intorno_OK", flags="f", quiet=True)
+                grass.run_command(
+                    "g.remove", type="vector", name="intorno_OK", flags="f", quiet=True
+                )
             # chk_category
-            grass.run_command("g.remove", type="vector", name="intorno", flags="f", quiet=True)
+            grass.run_command(
+                "g.remove", type="vector", name="intorno", flags="f", quiet=True
+            )
         # vicini
     # pulire
 
 
-def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None)
+def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
     if not flags["n"]:
         if not flags["m"]:
-            grass.message(" -- we want QUICK cleaning of small-sized areas: METHOD 1 --")
+            grass.message(
+                " -- we want QUICK cleaning of small-sized areas: METHOD 1 --"
+            )
 
         exp = "$out = if(isnull($mask), null(), 1)"
         grass.mapcalc(exp, out="MASK", mask=dem, quiet=True)
         areamap = "areamap"
 
-        grass.run_command(
-            "r.clump", input=slumap, output="slu_clump", quiet=True
-        )
+        grass.run_command("r.clump", input=slumap, output="slu_clump", quiet=True)
         rm_rasters.append("slu_clump")
 
         grass.run_command(
@@ -823,7 +1114,7 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None)
             quiet=True,
         )
         rm_rasters.append("slu_diversity_nobordi_grow")
-        
+
         exp = "$out = if(isnull($a), null(), $b)"
         grass.mapcalc(
             exp,
@@ -873,10 +1164,10 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None)
             quiet=True,
         )
         rm_rasters.append("aspect_slu")
-        #os.system(
+        # os.system(
         #    "/home/alvioli/dem_globo_srtm/range/script04/slu_code/clean_method_3.sh slu_v_grow vect2 %s"
         #    % cleansize
-        #)
+        # )
         clean_method_3("slu_v_grow", "vect2", cleansize)
 
         # applying method 2 at the end
@@ -970,9 +1261,7 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None)
         )
     else:
         exp = "$out = if(isnull($c), null(), int($a))"
-        grass.mapcalc(
-            exp, out=slumapclean, a="slu_r_grow", c=dem, quiet=True
-        )
+        grass.mapcalc(exp, out=slumapclean, a="slu_r_grow", c=dem, quiet=True)
     grass.run_command("r.colors", map=slumapclean, color="random", quiet=True)
 
 

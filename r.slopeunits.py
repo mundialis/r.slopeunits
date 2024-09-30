@@ -117,7 +117,7 @@
 # % guisection: flags
 # %end
 
-import sys
+#import sys
 import grass.script as grass
 import atexit
 import os
@@ -210,7 +210,7 @@ def slope_units(
     last_counter = counter - 1
     control = 1
     i = grass.raster_info(dem)
-    control_lastrun = int(i["cells"])
+    # control_lastrun = int(i["cells"])
     grass.mapcalc("$out = null()", out="slu_r_0", quiet=True)
     grass.mapcalc("$out = null()", out="cvar_0", quiet=True)
     grass.mapcalc("$out = null()", out="count_0", quiet=True)
@@ -228,8 +228,8 @@ def slope_units(
     # remains equal to thc
     while control > 0 and counter < maxiter and thc >= red:
 
-        # generating the half-basins
-        ###        grass.run_command('r.watershed', elevation=dem, hbasin='slu_r_tmp', thresh=thc, flags='abs', overwrite=True, quiet=True)
+        # generating half-basins
+        # grass.run_command('r.watershed', elevation=dem, hbasin='slu_r_tmp', thresh=thc, flags='abs', overwrite=True, quiet=True)
         grass.run_command(
             "g.remove", type="raster", name="slu_r_tmp", flags="f", quiet=True
         )
@@ -668,7 +668,7 @@ def clean_method_3(input_vect, output_vect, minarea):
     )
     lista = lista.splitlines()
     buchi = ",".join(lista)
-    totalebuchi = len(lista)
+    # totalebuchi = len(lista)
     grass.run_command(
         "v.extract",
         input="slu_area",
@@ -802,7 +802,7 @@ def clean_method_3(input_vect, output_vect, minarea):
 
     ico = 1
     for i in pulire:
-        inti = int(i)
+        # inti = int(i)
         lista1 = grass.read_command(
             "db.select",
             sql="select b2.right from slu_bordi_2 b2 where b2.left = {i} and b2.right <> -1",

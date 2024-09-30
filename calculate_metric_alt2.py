@@ -258,8 +258,8 @@ def calculate_metric_alt2(
     denvar = grass.parse_command("r.univar", map="den", quiet=True)
     # TODO: check if digit after comma can processed without problems
     # Vfin=`echo "$numvar/$denvar"|bc -l`
-    Vfin = numvar / denvar
-    grass.message(_(f"Vfin: {Vfin}"))
+    v_fin = numvar / denvar
+    grass.message(_(f"Vfin: {v_fin}"))
 
     # TODO: check why there is an outcommented exit command here
     ####
@@ -355,8 +355,8 @@ def calculate_metric_alt2(
 
     # TODO: check if digit after comma can processed without problems
     # Ifin=`echo "$num/$den"|bc -l`
-    Ifin = num / den
-    grass.message(_(f"Ifin: {Ifin}"))
+    i_fin = num / den
+    grass.message(_(f"Ifin: {i_fin}"))
 
     # TODO: check why there is an outcommented exit command here
     ####
@@ -380,4 +380,4 @@ def calculate_metric_alt2(
     # TODO: check if infos are appended correctly to file
     # echo "$areamin $cvmin $Vfin $Ifin" >> $outfile
     with open(outfile, "a") as file:
-        file.write(f"{areamin} {cvmin} {Vfin} {Ifin}")
+        file.write(f"{areamin} {cvmin} {v_fin} {i_fin}")

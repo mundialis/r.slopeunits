@@ -421,7 +421,7 @@ def slope_units(
                     )
                     grass.run_command(
                         "g.copy",
-                        rast="MASK,mask" + str(counter)),
+                        rast="MASK,mask" + str(counter),
                         quiet=True,
                     )
                 else:

@@ -4,4 +4,4 @@ on: [push, pull_request]
 
 jobs:
   lint:
-    uses: mundialis/github-workflows/.github/workflows/linting.yml@1.1.0
+    uses: mundialis/github-workflows/.github/workflows/linting.yml@1.2.0

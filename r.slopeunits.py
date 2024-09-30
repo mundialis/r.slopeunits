@@ -117,10 +117,11 @@
 # % guisection: flags
 # %end
 
-# import sys
-import grass.script as grass
 import atexit
 import os
+# import sys
+
+import grass.script as grass
 
 # initialize global vars
 rm_rasters = []
@@ -173,7 +174,9 @@ def slope_units(
 
     # a MASK must not exist already
     if grass.find_file(name=rmrast, element="cell")["file"]:
-        grass.fatal("Please remove the raster MASK first, before running this module")
+        grass.fatal(
+            "Please remove the raster MASK first, before running this module"
+        )
 
     # setting the mask on the DTM
     exp = "$out = if(isnull($mask), null(), 1)"
@@ -222,14 +225,25 @@ def slope_units(
     rm_rasters.append("slu_r_todo")
     rm_rasters.append("slu_r_todo_0")
 
-    # starting the loop. The loop stops when: there are no halfbasins extracted (control=0),
-    # OR the number of allowed iteration is exceeded (counter>maxiter) OR the threshold
-    # (cells) is greather/equal than the reduction factor (thc >= red) otherwise int(thc-thc/red)
+    # starting the loop. The loop stops when: there are no halfbasins extracted
+    # (control=0),
+    # OR the number of allowed iteration is exceeded (counter>maxiter) OR the
+    # threshold
+    # (cells) is greather/equal than the reduction factor (thc >= red) otherwise
+    # int(thc-thc/red)
     # remains equal to thc
     while control > 0 and counter < maxiter and thc >= red:
 
         # generating half-basins
-        # grass.run_command('r.watershed', elevation=dem, hbasin='slu_r_tmp', thresh=thc, flags='abs', overwrite=True, quiet=True)
+        # grass.run_command(
+        #     'r.watershed',
+        #     elevation=dem,
+        #     hbasin='slu_r_tmp',
+        #     thresh=thc,
+        #     flags='abs',
+        #     overwrite=True,
+        #     quiet=True,
+        # )
         grass.run_command(
             "g.remove", type="raster", name="slu_r_tmp", flags="f", quiet=True
         )
@@ -249,7 +263,9 @@ def slope_units(
         )
         if options["plainsmap"]:
             exp = "$out = if(isnull($a), $b, null())"
-            grass.mapcalc(exp, out="slu_r", a=plains, b="slu_r_tmp", quiet=True)
+            grass.mapcalc(
+                exp, out="slu_r", a=plains, b="slu_r_tmp", quiet=True
+            )
         else:
             grass.run_command("g.copy", rast="slu_r_tmp,slu_r", quiet=True)
 
@@ -344,7 +360,9 @@ def slope_units(
 
         # checking that there actually are half-basins with area greater than areamin
         # and circular variance greater than cvarmin. otherwise the loop exits
-        s = grass.read_command("r.univar", flags="g", map="slu_r_todo", quiet=True)
+        s = grass.read_command(
+            "r.univar", flags="g", map="slu_r_todo", quiet=True
+        )
         kv = grass.parse_key_val(s)
         # ivan
         # if there are any non-NULL cells
@@ -356,10 +374,14 @@ def slope_units(
             # patching the current half-basins, cvar and counter that were not selected
             # in the previous steps with those that come from the previous step of the loop
             grass.run_command(
-                "g.copy", rast=("slu_r_todo,slu_r_todo_%d") % counter, quiet=True
+                "g.copy",
+                rast=("slu_r_todo,slu_r_todo_%d") % counter,
+                quiet=True,
             )
             rm_rasters.append("slu_r_todo_%s" % counter)
-            grass.run_command("r.mask", raster="slu_r_todo", flags="i", quiet=True)
+            grass.run_command(
+                "r.mask", raster="slu_r_todo", flags="i", quiet=True
+            )
             grass.run_command(
                 "r.patch",
                 input=("slu_r_" + str(last_counter), "slu_r"),
@@ -397,7 +419,9 @@ def slope_units(
                     # this block does not make sense,
                     # count_prova_<last_counter> has been calculated above
                     if counter == 1:
-                        grass.mapcalc("$out = 1", out="count_prova_0", quiet=True)
+                        grass.mapcalc(
+                            "$out = 1", out="count_prova_0", quiet=True
+                        )
                     exp = "$out = if($a > $b, 1, null())"
                     # this
                     # a="count_prova_" + str(last_counter - 1)
@@ -523,7 +547,9 @@ def slope_units(
             thhect = thc * nsres * ewres / 10000
             grass.message(("Threshold (hectars) is: %s") % thhect)
             grass.message(
-                ("No. of cells to be still classified as SLU is: %s. Loop done: %s")
+                (
+                    "No. of cells to be still classified as SLU is: %s. Loop done: %s"
+                )
                 % (control, counter)
             )
         else:
@@ -573,10 +599,16 @@ def slope_units(
         exp = "$out = if(isnull($a), if(isnull($c), null(), 1), $a)"
         grass.mapcalc(exp, a="slumap_1", c=dem, out="slumap_2", quiet=True)
     grass.run_command("r.clump", input="slumap_2", output=slumap, quiet=True)
-    grass.run_command("g.remove", type="raster", name="slumap_1", flags="f", quiet=True)
-    grass.run_command("g.remove", type="raster", name="slumap_2", flags="f", quiet=True)
+    grass.run_command(
+        "g.remove", type="raster", name="slumap_1", flags="f", quiet=True
+    )
+    grass.run_command(
+        "g.remove", type="raster", name="slumap_2", flags="f", quiet=True
+    )
 
-    grass.run_command("r.colors", map="slu_r_final", color="random", quiet=True)
+    grass.run_command(
+        "r.colors", map="slu_r_final", color="random", quiet=True
+    )
 
     if circvarmap:
         grass.message("Writing out %s" % circvarmap)
@@ -651,7 +683,11 @@ def clean_method_3(input_vect, output_vect, minarea):
         "v.to.db", map="slu_clean", option="area", columns="area", quiet=True
     )
     grass.run_command(
-        "v.to.db", map="slu_clean", option="perimeter", columns="perimetro", quiet=True
+        "v.to.db",
+        map="slu_clean",
+        option="perimeter",
+        columns="perimetro",
+        quiet=True,
     )
     grass.run_command(
         "v.db.droprow",
@@ -664,7 +700,11 @@ def clean_method_3(input_vect, output_vect, minarea):
 
     key = grass.vector_db(map="slu_area")[1]["key"]
     lista = grass.read_command(
-        "v.db.select", map="slu_area", columns=key, where=f"area <= {minarea}", flags="c"
+        "v.db.select",
+        map="slu_area",
+        columns=key,
+        where=f"area <= {minarea}",
+        flags="c",
     )
     lista = lista.splitlines()
     buchi = ",".join(lista)
@@ -678,12 +718,20 @@ def clean_method_3(input_vect, output_vect, minarea):
         quiet=True,
     )
     grass.run_command(
-        "v.to.rast", input="slu_buchi", output="slu_buchi", use="cat" - -o - -q
+        "v.to.rast",
+        input="slu_buchi",
+        output="slu_buchi",
+        use="cat",
+        overwrite=True,
     )
 
     key = grass.vector_db(map="slu_area")[1]["key"]
     lista = grass.read_command(
-        "v.db.select", map="slu_area", columns=key, where=f"area > {minarea}", flags="c"
+        "v.db.select",
+        map="slu_area",
+        columns=key,
+        where=f"area > {minarea}",
+        flags="c",
     )
     lista = lista.splitlines()
     nobuchi = ",".join(lista)
@@ -696,7 +744,11 @@ def clean_method_3(input_vect, output_vect, minarea):
         quiet=True,
     )
     grass.run_command(
-        "v.to.rast", input="slu_nobuchi", output="slu_nobuchi", use="cat" - -o - -q
+        "v.to.rast",
+        input="slu_nobuchi",
+        output="slu_nobuchi",
+        use="cat",
+        overwrite=True,
     )
     grass.run_command(
         "v.category",
@@ -767,10 +819,18 @@ def clean_method_3(input_vect, output_vect, minarea):
     grass.mapcalc("cos_medio = sumcos / count", quiet=True)
     grass.mapcalc("sin_medio = sumsin / count", quiet=True)
     grass.run_command(
-        "r.to.vect", input="cos_medio", output="cos_medio", type="area", quiet=True
+        "r.to.vect",
+        input="cos_medio",
+        output="cos_medio",
+        type="area",
+        quiet=True,
     )
     grass.run_command(
-        "r.to.vect", input="sin_medio", output="sin_medio", type="area", quiet=True
+        "r.to.vect",
+        input="sin_medio",
+        output="sin_medio",
+        type="area",
+        quiet=True,
     )
     grass.run_command(
         "v.overlay",
@@ -872,7 +932,10 @@ def clean_method_3(input_vect, output_vect, minarea):
                 massimo = -10000
                 jmax = 0
                 loop = grass.read_command(
-                    "v.category", input="intorno_OK", option="print", quiet=True
+                    "v.category",
+                    input="intorno_OK",
+                    option="print",
+                    quiet=True,
                 )
                 loop = loop.splitlines()
                 for j in loop:
@@ -894,7 +957,8 @@ def clean_method_3(input_vect, output_vect, minarea):
                         quiet=True,
                     )
                     dotpr = (
-                        float(cos_buco) * float(cos_j) + float(sin_buco) * float(sin_j)
+                        float(cos_buco) * float(cos_j)
+                        + float(sin_buco) * float(sin_j)
                     ) * 10000
                     if dotpr >= massimo and dotpr > 0:
                         massimo = dotpr
@@ -1016,11 +1080,19 @@ def clean_method_3(input_vect, output_vect, minarea):
                     # lunghezza and perimetro
                 # jmax
                 grass.run_command(
-                    "g.remove", type="vector", name="intorno_OK", flags="f", quiet=True
+                    "g.remove",
+                    type="vector",
+                    name="intorno_OK",
+                    flags="f",
+                    quiet=True,
                 )
             # chk_category
             grass.run_command(
-                "g.remove", type="vector", name="intorno", flags="f", quiet=True
+                "g.remove",
+                type="vector",
+                name="intorno",
+                flags="f",
+                quiet=True,
             )
         # vicini
     # pulire
@@ -1037,7 +1109,9 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
         grass.mapcalc(exp, out="MASK", mask=dem, quiet=True)
         areamap = "areamap"
 
-        grass.run_command("r.clump", input=slumap, output="slu_clump", quiet=True)
+        grass.run_command(
+            "r.clump", input=slumap, output="slu_clump", quiet=True
+        )
         rm_rasters.append("slu_clump")
 
         grass.run_command(
@@ -1084,7 +1158,9 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
         rm_rasters.append("slu_r_grow")
 
     if flags["m"]:
-        grass.message(" -- we want QUICK cleaning of small-sized areas: METHOD 2 --")
+        grass.message(
+            " -- we want QUICK cleaning of small-sized areas: METHOD 2 --"
+        )
         input = "slu_r_grow"
         output = "slu_no_stripes"
         grass.run_command(
@@ -1147,7 +1223,9 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
         )
 
     if flags["n"]:
-        grass.message(" -- we want DETAILED cleaning of small-sized areas: METHOD 3 --")
+        grass.message(
+            " -- we want DETAILED cleaning of small-sized areas: METHOD 3 --"
+        )
         grass.run_command(
             "r.to.vect",
             input=slumap,
@@ -1266,6 +1344,7 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
 
 
 def main():
+    """Main function of r.slopeunits"""
     global rm_rasters, rm_vectors
     global thc
 
@@ -1289,14 +1368,25 @@ def main():
         if options["slumapclean"]:
             slumapclean = options["slumapclean"]
         else:
-            grass.fatal("When cleansize is provided, slumapclean is mandatory.")
+            grass.fatal(
+                "When cleansize is provided, slumapclean is mandatory."
+            )
         if flags["m"] and flags["n"]:
             grass.fatal(
                 "When cleansize is provided, only one between m and n can be specified."
             )
 
     slope_units(
-        dem, plains, slumap, circvarmap, areamap, th, amin, cvarmin, red, maxiter
+        dem,
+        plains,
+        slumap,
+        circvarmap,
+        areamap,
+        th,
+        amin,
+        cvarmin,
+        red,
+        maxiter,
     )
 
     if cleansize > 0:

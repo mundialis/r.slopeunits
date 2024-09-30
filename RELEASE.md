@@ -5,7 +5,7 @@ Steps when releasing:
 - Run in terminal
   ```
   ESTIMATED_VERSION=1.0.0
-  REPO_NAME=mundialis/v.example
+  REPO_NAME=mundialis/r.slopeunits
 
   gh api repos/$REPO_NAME/releases/generate-notes -f tag_name="$ESTIMATED_VERSION" -f target_commitish=main -q .body
   ```

@@ -140,7 +140,7 @@ def cleanup():
     if grass.find_file("MASK")["file"]:
         # grass.run_command('r.mask', flags='r')
         grass.run_command(
-            "g.remove", type="raster", name=("MASK"), flags="f", quiet=True
+            "g.remove", type="raster", name="MASK", flags="f", quiet=True
         )
 
 
@@ -492,7 +492,7 @@ def slope_units(
 
                         grass.run_command(
                             "g.rename",
-                            rast="slu_r_{counter},slu_r_tmp_{counter}",
+                            rast=f"slu_r_{counter},slu_r_tmp_{counter}",
                             quiet=True,
                         )
                         rm_rasters.append("slu_r_tmp_%d" % counter)
@@ -508,7 +508,7 @@ def slope_units(
                         grass.run_command(
                             "g.remove",
                             type="raster",
-                            name="slu_r_tmp_{counter}",
+                            name=f"slu_r_tmp_{counter}",
                             flags="f",
                             quiet=True,
                         )
@@ -664,11 +664,11 @@ def clean_method_3(input_vect, output_vect, minarea):
 
     key = grass.vector_db(map="slu_area")[1]["key"]
     lista = grass.read_command(
-        "v.db.select", map="slu_area", columns=key, where="area <= {minarea}", flags="c"
+        "v.db.select", map="slu_area", columns=key, where=f"area <= {minarea}", flags="c"
     )
     lista = lista.splitlines()
     buchi = ",".join(lista)
-    # totalebuchi = len(lista)
+    totalebuchi = len(lista)
     grass.run_command(
         "v.extract",
         input="slu_area",
@@ -683,7 +683,7 @@ def clean_method_3(input_vect, output_vect, minarea):
 
     key = grass.vector_db(map="slu_area")[1]["key"]
     lista = grass.read_command(
-        "v.db.select", map="slu_area", columns=key, where="area > {minarea}", flags="c"
+        "v.db.select", map="slu_area", columns=key, where=f"area > {minarea}", flags="c"
     )
     lista = lista.splitlines()
     nobuchi = ",".join(lista)
@@ -798,19 +798,19 @@ def clean_method_3(input_vect, output_vect, minarea):
     )
     pulire = pulire.splitlines()
 
-    grass.run_command("g.copy", vector="slu_area,{output_vect}", quiet=True)
+    grass.run_command("g.copy", vector=f"slu_area,{output_vect}", quiet=True)
 
     ico = 1
     for i in pulire:
-        # inti = int(i)
+        inti = int(i)
         lista1 = grass.read_command(
             "db.select",
-            sql="select b2.right from slu_bordi_2 b2 where b2.left = {i} and b2.right <> -1",
+            sql=f"select b2.right from slu_bordi_2 b2 where b2.left = {i} and b2.right <> -1",
             flags="c",
         )
         lista2 = grass.read_command(
             "db.select",
-            sql="select b2.left from slu_bordi_2 b2 where b2.left <> -1 and b2.right = {inti}",
+            sql=f"select b2.left from slu_bordi_2 b2 where b2.left <> -1 and b2.right = {inti}",
             flags="c",
         )
         vicini = lista1.splitlines()
@@ -818,10 +818,10 @@ def clean_method_3(input_vect, output_vect, minarea):
         vicini = sorted(set(vicini))
         if len(vicini) > 0:
             grass.message(
-                " --- --- -- buco numero {ico} di {totalebuchi}, cat: {i}, vicini: {vicini}"
+                f" --- --- -- buco numero {ico} di {totalebuchi}, cat: {i}, vicini: {vicini}"
             )
             ico = ico + 1
-            grass.message("vicini: {vicini}")
+            grass.message(f"vicini: {vicini}")
             grass.run_command(
                 "v.extract",
                 input=output_vect,
@@ -855,7 +855,7 @@ def clean_method_3(input_vect, output_vect, minarea):
                 cos_buco = grass.read_command(
                     "v.db.select",
                     map="cos_medio_over",
-                    where="a_cat={i}",
+                    where=f"a_cat={i}",
                     columns="b_value",
                     flags="c",
                     quiet=True,
@@ -863,12 +863,12 @@ def clean_method_3(input_vect, output_vect, minarea):
                 sin_buco = grass.read_command(
                     "v.db.select",
                     map="sin_medio_over",
-                    where="a_cat={i}",
+                    where=f"a_cat={i}",
                     columns="b_value",
                     flags="c",
                     quiet=True,
                 )
-                grass.message("buco cat {i}: cos={cos_buco} sin={sin_buco}")
+                grass.message(f"buco cat {i}: cos={cos_buco} sin={sin_buco}")
                 massimo = -10000
                 jmax = 0
                 loop = grass.read_command(
@@ -880,7 +880,7 @@ def clean_method_3(input_vect, output_vect, minarea):
                     cos_j = grass.read_command(
                         "v.db.select",
                         map="cos_medio_over",
-                        where="a_cat={j}",
+                        where=f"a_cat={j}",
                         columns="b_value",
                         flags="c",
                         quiet=True,
@@ -888,7 +888,7 @@ def clean_method_3(input_vect, output_vect, minarea):
                     sin_j = grass.read_command(
                         "v.db.select",
                         map="sin_medio_over",
-                        where="a_cat={j}",
+                        where=f"a_cat={j}",
                         columns="b_value",
                         flags="c",
                         quiet=True,
@@ -901,14 +901,14 @@ def clean_method_3(input_vect, output_vect, minarea):
                         jmax = j
 
                     grass.message(
-                        "i: {i} j: {j} cos_j: {cos_j} sin_j: {sin_j} dotpr: {dotpr} jmax: {jmax}"
+                        f"i: {i} j: {j} cos_j: {cos_j} sin_j: {sin_j} dotpr: {dotpr} jmax: {jmax}"
                     )
 
-                grass.message("massimo: {massimo} per j={jmax}")
+                grass.message(f"massimo: {massimo} per j={jmax}")
                 if jmax > 0:
                     lunghezza = grass.read_command(
                         "db.select",
-                        sql="select b2.lunghezza from slu_bordi_2 b2 where (b2.left={i} and b2.right={jmax}) or (b2.left={jmax} and b2.right={i})",
+                        sql=f"select b2.lunghezza from slu_bordi_2 b2 where (b2.left={i} and b2.right={jmax}) or (b2.left={jmax} and b2.right={i})",
                         flags="c",
                         quiet=True,
                     )
@@ -916,7 +916,7 @@ def clean_method_3(input_vect, output_vect, minarea):
                         "v.db.select",
                         map="slu_clean",
                         columns="perimetro",
-                        where="cat={i}",
+                        where=f"cat={i}",
                         flags="c",
                         quiet=True,
                     )
@@ -926,13 +926,13 @@ def clean_method_3(input_vect, output_vect, minarea):
                         frazione = lunghezza / perimetro * 10000
                         if frazione > 500:
                             grass.message(
-                                "lungh: {lunghezza}; perim: {perimetro}; fract: {frazione}"
+                                f"lungh: {lunghezza}; perim: {perimetro}; fract: {frazione}"
                             )
                             grass.run_command(
                                 "v.extract",
                                 input=output_vect,
                                 output="slu_i",
-                                cats="{i},{jmax}",
+                                cats=f"{i},{jmax}",
                                 new={jmax},
                                 flags="d",
                                 quiet=True,

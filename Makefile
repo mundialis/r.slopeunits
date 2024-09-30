@@ -1,6 +1,6 @@
 MODULE_TOPDIR = ../..
 
-PGM = v.example
+PGM = r.slopeunits
 
 include $(MODULE_TOPDIR)/include/Make/Script.make
 

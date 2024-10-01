@@ -9,7 +9,7 @@ import grass.script as grass
 
 
 def calculate_metric_alt2(
-    basin, dem, sucl, thr_clean, id, areamin, cvmin, res, outfile
+    basin, dem, sucl, thr_clean, uid, areamin, cvmin, res, outfile
 ):
     """Calculate metric"""
 
@@ -179,12 +179,12 @@ def calculate_metric_alt2(
         overwrite=True,
     )
     # .. but we need maps in radians, as needed by bc in bash
-    pi = 3.14159265359
+    pii = 3.14159265359
     grass.run_command(
-        "r.mapcalc", expression=f"a_irad = a_i*{pi}/180", overwrite=True
+        "r.mapcalc", expression=f"a_irad = a_i*{pii}/180", overwrite=True
     )
     grass.run_command(
-        "r.mapcalc", expression=f"a_allrad = a_all*{pi}/180", overwrite=True
+        "r.mapcalc", expression=f"a_allrad = a_all*{pii}/180", overwrite=True
     )
 
     grass.message(_("v.rast.stats 1 ..."))

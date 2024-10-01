@@ -694,6 +694,7 @@ def slope_units(
 
     grass.message("Slope units calculated.")
 
+
 def clean_method_3(input_vect, output_vect, minarea):
     region = grass.region()
     nsres = region["nsres"]
@@ -1442,6 +1443,7 @@ def main():
         clean_small_areas(dem, slumap, plains, cleansize, slumapclean)
 
     grass.message("Slope units finished.")
+
 
 if __name__ == "__main__":
     options, flags = grass.parser()

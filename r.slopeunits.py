@@ -282,7 +282,7 @@ def slope_units(
             grass.run_command(
                 "g.remove", type="raster", name="count", flags="f", quiet=True
             )
- 
+
         grass.run_command(
             "r.stats.zonal",
             base="slu_r",

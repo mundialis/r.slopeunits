@@ -157,6 +157,8 @@ def slope_units(
     red=-1,
     maxiter=0,
 ):
+    """ core slope unit calculation """
+
     global rm_rasters, rm_vectors
     global thc
 
@@ -173,7 +175,7 @@ def slope_units(
         amaxc = int(amax / (nsres * ewres))
 
     # a MASK must not exist already
-    if grass.find_file(name=rmrast, element="cell")["file"]:
+    if grass.find_file(name="MASK", element="cell")["file"]:
         grass.fatal(
             "Please remove the raster MASK first, before running this module"
         )
@@ -261,7 +263,7 @@ def slope_units(
         grass.run_command(
             "g.remove", type="raster", name="slu_r", flags="f", quiet=True
         )
-        if options["plainsmap"]:
+        if plains:
             exp = "$out = if(isnull($a), $b, null())"
             grass.mapcalc(
                 exp, out="slu_r", a=plains, b="slu_r_tmp", quiet=True
@@ -271,9 +273,16 @@ def slope_units(
 
         rm_rasters.append("slu_r")
 
-        grass.run_command("r.mask", flags="r", quiet=True)
+        if grass.find_file(name="MASK", element="cell")["file"]:
+            grass.run_command("r.mask", flags="r", quiet=True)
         exp = "$out = if(isnull($mask), null(), 1)"
         grass.mapcalc(exp, out="MASK", mask="slu_r_todo", quiet=True)
+
+        if grass.find_file(name="count", element="cell")["file"]:
+            grass.run_command(
+                "g.remove", type="raster", name="count", flags="f", quiet=True
+            )
+ 
         grass.run_command(
             "r.stats.zonal",
             base="slu_r",
@@ -283,6 +292,11 @@ def slope_units(
             quiet=True,
         )
         rm_rasters.append("count")
+
+        if grass.find_file(name="sumcoseno", element="cell")["file"]:
+            grass.run_command(
+                "g.remove", type="raster", name="sumcoseno", flags="f", quiet=True
+            )
         grass.run_command(
             "r.stats.zonal",
             base="slu_r",
@@ -292,6 +306,11 @@ def slope_units(
             quiet=True,
         )
         rm_rasters.append("sumcoseno")
+
+        if grass.find_file(name="sumseno", element="cell")["file"]:
+            grass.run_command(
+                "g.remove", type="raster", name="sumseno", flags="f", quiet=True
+            )
         grass.run_command(
             "r.stats.zonal",
             base="slu_r",
@@ -307,6 +326,10 @@ def slope_units(
         # vectors of the aspect layer in each polygon and n is the number of unit vectors (and
         # cells) involved in the sum
         exp = "$out = 1 - ((sqrt(($a)^2 + ($b)^2)) / $c)"
+        if grass.find_file(name="cvar", element="cell")["file"]:
+            grass.run_command(
+                "g.remove", type="raster", name="cvar", flags="f", quiet=True
+            )
         grass.mapcalc(
             exp,
             out="cvar",
@@ -480,6 +503,7 @@ def slope_units(
                             quiet=True,
                         )
                         rm_rasters.append("slu_diversity_%d" % counter)
+                        rm_rasters.append("slu_r_todo_%d" % last_counter)
                         #                        grass.run_command('r.univar', map='slu_r')
                         #                        grass.run_command('r.univar', map='slu_r_todo_'+str(last_counter))
                         #                        grass.run_command('r.univar', map='slu_diversity_'+str(counter))
@@ -627,7 +651,8 @@ def slope_units(
         )
 
     # clean up
-    grass.run_command("r.mask", flags="r", quiet=True)
+    if grass.find_file(name="MASK", element="cell")["file"]:
+        grass.run_command("r.mask", flags="r", quiet=True)
     grass.run_command(
         "g.remove", type="raster", name="seno,coseno", flags="f", quiet=True
     )
@@ -643,6 +668,12 @@ def slope_units(
         quiet=True,
     )
 
+    for i in range(1, counter + 1):
+        mapname = "slu_diversity_" + str(i)
+        grass.run_command(
+            "g.remove", type="raster", name=mapname, flags="f", quiet=True
+        )
+
     for i in range(counter + 1):
         mapname = "slu_r_" + str(i)
         grass.run_command(
@@ -657,7 +688,11 @@ def slope_units(
             "g.remove", type="raster", name=mapname, flags="f", quiet=True
         )
         mapname = "slu_r_todo_" + str(i)
+        grass.run_command(
+            "g.remove", type="raster", name=mapname, flags="f", quiet=True
+        )
 
+    grass.message("Slope units calculated.")
 
 def clean_method_3(input_vect, output_vect, minarea):
     region = grass.region()
@@ -1099,6 +1134,10 @@ def clean_method_3(input_vect, output_vect, minarea):
 
 
 def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
+    region = grass.region()
+    nsres = region["nsres"]
+    ewres = region["ewres"]
+
     if not flags["n"]:
         if not flags["m"]:
             grass.message(
@@ -1161,11 +1200,11 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
         grass.message(
             " -- we want QUICK cleaning of small-sized areas: METHOD 2 --"
         )
-        input = "slu_r_grow"
-        output = "slu_no_stripes"
+        clean_input = "slu_r_grow"
+        clean_output = "slu_no_stripes"
         grass.run_command(
             "r.neighbors",
-            input=input,
+            input=clean_input,
             output="slu_diversity",
             method="diversity",
             size=5,
@@ -1196,7 +1235,7 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
             exp,
             out="slu_finale_nobordi",
             a="slu_diversity_nobordi_grow",
-            b=input,
+            b=clean_input,
             quiet=True,
         )
         rm_rasters.append("slu_finale_nobordi")
@@ -1205,15 +1244,18 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
         grass.run_command(
             "r.grow",
             input="slu_finale_nobordi",
-            output=output,
+            output=clean_output,
             radius=1000,
             quiet=True,
         )
-        rm_rasters.append(output)
+        rm_rasters.append(clean_output)
 
         exp = "$out = int($a)"
-        # TODO: input="slu_r_grow" exists already
-        grass.mapcalc(exp, out=input, a=output, quiet=True)
+        # output="slu_r_grow" exists already
+        grass.run_command(
+            "g.remove", type="raster", name=clean_input, flags="f", quiet=True
+        )
+        grass.mapcalc(exp, out=clean_input, a=clean_output, quiet=True)
         grass.run_command(
             "g.remove",
             type="raster",
@@ -1258,11 +1300,11 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
         )
         rm_rasters.append("rast2")
 
-        input = "rast2"
-        output = "slu_r_grow"
+        clean_input = "rast2"
+        clean_output = "slu_r_grow"
         grass.run_command(
             "r.neighbors",
-            input=input,
+            input=clean_input,
             output="slu_diversity",
             method="diversity",
             size=5,
@@ -1293,7 +1335,7 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
             exp,
             out="slu_finale_nobordi",
             a="slu_diversity_nobordi_grow",
-            b=input,
+            b=clean_input,
             quiet=True,
         )
         rm_rasters.append("slu_finale_nobordi")
@@ -1301,15 +1343,19 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
         grass.run_command(
             "r.grow",
             input="slu_finale_nobordi",
-            output=output,
+            output=clean_output,
             radius=1000,
             quiet=True,
         )
-        rm_rasters.append(output)
+        rm_rasters.append(clean_output)
 
         exp = "$out = int($a)"
-        grass.mapcalc(exp, out=input, a=output, quiet=True)
-        rm_rasters.append(input)
+        # output="slu_r_grow" exists already
+        grass.run_command(
+            "g.remove", type="raster", name=clean_input, flags="f", quiet=True
+        )
+        grass.mapcalc(exp, out=clean_input, a=clean_output, quiet=True)
+        rm_rasters.append(clean_input)
 
         grass.run_command(
             "g.remove",
@@ -1340,7 +1386,10 @@ def clean_small_areas(dem, slumap, plains, cleansize=-1, slumapclean=None):
     else:
         exp = "$out = if(isnull($c), null(), int($a))"
         grass.mapcalc(exp, out=slumapclean, a="slu_r_grow", c=dem, quiet=True)
+
     grass.run_command("r.colors", map=slumapclean, color="random", quiet=True)
+
+    grass.message("Cleaning of small areas finished.")
 
 
 def main():
@@ -1392,6 +1441,7 @@ def main():
     if cleansize > 0:
         clean_small_areas(dem, slumap, plains, cleansize, slumapclean)
 
+    grass.message("Slope units finished.")
 
 if __name__ == "__main__":
     options, flags = grass.parser()

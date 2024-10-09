@@ -1,5 +1,6 @@
 #!/usr/bin/env python3
 
+import sys
 
 import grass.script as grass
 
@@ -14,7 +15,9 @@ def calculate_metric_alt2(
     """Calculate metric"""
 
     grass.run_command("g.region", vect=basin, align=dem)
-    grass.run_command("r.mask", flags="r")
+    maks = grass.parse_command("g.list", type="raster", pattern="MASK")
+    if "MASK" in maks:
+        grass.run_command("r.mask", flags="r")
     grass.run_command("r.mask", vect=basin, overwrite=True)
     grass.run_command("g.remove", type="vector", name="su_segm", flags="f")
     grass.run_command("g.copy", vect=f"{sucl},su_segm", overwrite=True)
@@ -112,7 +115,7 @@ def calculate_metric_alt2(
 
     grass.message(_("r.statistics 4 ..."))
     grass.run_command(
-        "r.mapcalc", expression="base = int($dem/$dem)", overwrite=True
+        "r.mapcalc", expression="base = int(dem/dem)", overwrite=True
     )
     grass.run_command(
         "r.stats.zonal",
@@ -250,21 +253,28 @@ def calculate_metric_alt2(
     grass.run_command(
         "r.mapcalc", expression=f"den = {onecell}", overwrite=True
     )
-    # TODO: parse correctly with python
+    numvar = grass.parse_command(
+        "r.univar",
+        map="num",
+        quiet=True,
+        parse=(grass.core.parse_key_val, {"sep": ":"}),
+    )
+    denvar = grass.parse_command(
+        "r.univar",
+        map="den",
+        quiet=True,
+        parse=(grass.core.parse_key_val, {"sep": ":"}),
+    )
+    # TODO: check if digit after comma can be processed without problems
     # numvar=`r.univar --q num|tail -n 1 |cut -f 2 -d " "`
-    numvar = grass.parse_command("r.univar", map="num", quiet=True)
-    # TODO: parse correctly with python
     # denvar=`r.univar --q den|tail -n 1 |cut -f 2 -d " "`
-    denvar = grass.parse_command("r.univar", map="den", quiet=True)
-    # TODO: check if digit after comma can processed without problems
     # Vfin=`echo "$numvar/$denvar"|bc -l`
-    v_fin = numvar / denvar
+    # echo $Vfin
+    # .11679578736735435929
+    # and wirh python v_fin is
+    # 0.11679578736735437
+    v_fin = float(numvar["sum"]) / float(denvar["sum"])
     grass.message(_(f"Vfin: {v_fin}"))
-
-    # TODO: check why there is an outcommented exit command here
-    ####
-    # exit
-    ####
 
     #
     # calcolo I
@@ -334,34 +344,28 @@ def calculate_metric_alt2(
         sql="update su_segm_edges_2 set num = ci*cj+si*sj",
     )
 
-    # TODO: check if parsed correctly
-    # num=`db.select -c sql=
-    # "select sum(num) from su_segm_edges_2 where left<>-1 and right<>-1"`
     num = grass.parse_command(
         "db.select",
         flags="c",
         sql="select sum(num) from su_segm_edges_2 where left<>-1 and right<>-1",
     )
-    # TODO: check if parsed correctly
-    # den=`db.select -c sql=
-    # "select count(*) from su_segm_edges_2 where left<>-1 and right<>-1"`
     den = grass.parse_command(
         "db.select",
         flags="c",
         sql="select count(*) from su_segm_edges_2 where left<>-1 and right<>-1",
     )
-    grass.message(_(num))
-    grass.message(_(den))
-
-    # TODO: check if digit after comma can processed without problems
+    num_float = float(next(iter(num.keys())))
+    den_float = float(next(iter(den.keys())))
+    grass.message(_(num_float))
+    grass.message(_(den_float))
+    # TODO: check if digit after comma can be processed without problems
     # Ifin=`echo "$num/$den"|bc -l`
-    i_fin = num / den
+    # echo $Ifin
+    # .34974890993927308294
+    # and wirh python i_fin is
+    # 0.34974890993927304
+    i_fin = float(num_float) / float(den_float)
     grass.message(_(f"Ifin: {i_fin}"))
-
-    # TODO: check why there is an outcommented exit command here
-    ####
-    # exit
-    ####
 
     grass.run_command(
         "g.remove",
@@ -377,7 +381,22 @@ def calculate_metric_alt2(
     )
     grass.run_command("r.mask", flags="r")
 
-    # TODO: check if infos are appended correctly to file
-    # echo "$areamin $cvmin $Vfin $Ifin" >> $outfile
     with open(outfile, "a") as file:
         file.write(f"{areamin} {cvmin} {v_fin} {i_fin}")
+
+
+# TODO: enhance passing of parameters
+# pylint: disable=invalid-name
+basin = sys.argv[1]
+dem = sys.argv[2]
+sucl = sys.argv[3]
+thr_clean = sys.argv[4]
+uid = sys.argv[5]
+areamin = sys.argv[6]
+cvmin = sys.argv[7]
+res = int(sys.argv[8])
+outfile = sys.argv[9]
+
+calculate_metric_alt2(
+    basin, dem, sucl, thr_clean, uid, areamin, cvmin, res, outfile
+)

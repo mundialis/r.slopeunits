@@ -15,9 +15,10 @@ def calculate_metric_alt2(
     """Calculate metric"""
 
     grass.run_command("g.region", vect=basin, align=dem)
-    maks = grass.parse_command("g.list", type="raster", pattern="MASK")
-    if "MASK" in maks:
-        grass.run_command("r.mask", flags="r")
+    if grass.find_file("MASK")["file"]:
+        grass.run_command(
+            "g.remove", type="raster", name="MASK", flags="f", quiet=True
+        )
     grass.run_command("r.mask", vect=basin, overwrite=True)
     grass.run_command("g.remove", type="vector", name="su_segm", flags="f")
     grass.run_command("g.copy", vect=f"{sucl},su_segm", overwrite=True)
@@ -53,7 +54,10 @@ def calculate_metric_alt2(
     # [4] Alvioli, Marchesini et al., Journal of Maps, 18, 300-313 (2021)
     #
 
-    grass.run_command("r.mask", flags="r")
+    if grass.find_file("MASK")["file"]:
+        grass.run_command(
+            "g.remove", type="raster", name="MASK", flags="f", quiet=True
+        )
     grass.run_command("r.mask", vect="su_segm", overwrite=True)
     grass.run_command(
         "v.to.rast",
@@ -379,7 +383,10 @@ def calculate_metric_alt2(
     grass.run_command(
         "g.remove", type="vector", name="su_segm,su_segm_edges", flags="f"
     )
-    grass.run_command("r.mask", flags="r")
+    if grass.find_file("MASK")["file"]:
+        grass.run_command(
+            "g.remove", type="raster", name="MASK", flags="f", quiet=True
+        )
 
     with open(outfile, "a") as file:
         file.write(f"{areamin} {cvmin} {v_fin} {i_fin}")

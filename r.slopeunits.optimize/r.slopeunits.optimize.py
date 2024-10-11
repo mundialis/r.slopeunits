@@ -68,21 +68,14 @@
 # % required: yes
 # %end
 
-
-# TODOs
-# - add configs to grass parser
-# - get rid of files and parsing, use python data types
-
 import atexit
 import math
 import os
 
 import grass.script as grass
 
-# TODO make configurable
-outdir = "outdir_test_05_py"
-workdir = "/workdir/test/su_test"
-# END make configurable
+# TODO make configurable or get rid of all temp files
+outdir = "/workdir/test/outdir_test_05_py"
 
 # initialize global vars
 rm_rasters = []
@@ -166,7 +159,7 @@ def calcola_loop(
 
         process = subprocess.Popen(
             [
-                f"{workdir}/r.slopeunits",
+                "/workdir/test/r.slopeunits",
                 f"demmap={dem}@{master_mapset}",
                 "slumap=su_tmp",
                 "slumapclean=su_tmp_cl",
@@ -213,7 +206,7 @@ def calcola_loop(
         resolution = math.floor(
             float(region["ewres"]) * float(region["nsres"])
         )
-        outfile = f"{workdir}/{outdir}/objf_{ico}.dat"
+        outfile = f"{outdir}/objf_{ico}.dat"
 
         grass.run_command(
             "r.to.vect",
@@ -238,7 +231,7 @@ def calcola_loop(
         process = subprocess.Popen(
             [
                 "python",
-                "calculate_metric_alt2.py",
+                "/workdir/test/calculate_metric_alt2.py",
                 f"{basin}",
                 f"{dem}",
                 "su_tmp_cl",
@@ -402,15 +395,6 @@ def main():
     cleansize = options["cleansize"]
     basin = options["basin"]
 
-    # TODO: remove after testing
-    dem = "dem_italia_isolegrandi"
-    plainsmap = "flat"
-    thresh = 250000
-    rf = 2
-    maxiteration = 50
-    cleansize = 25000
-    basin = "basin_chk"
-
     # Clean start
     grass.utils.try_rmdir(outdir)
     os.mkdir(outdir)
@@ -452,6 +436,9 @@ def main():
         # TODO continue translating test05.sh from line 184
         # now we need to find V_min,V_max,I_min,I_max corresponding ...
         # ...
+        # Requirements to continue:
+        # - calcd.dat
+        # - current.txt
 
 
 if __name__ == "__main__":

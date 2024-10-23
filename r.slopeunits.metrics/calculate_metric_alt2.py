@@ -119,7 +119,7 @@ def calculate_metric_alt2(
 
     grass.message(_("r.statistics 4 ..."))
     grass.run_command(
-        "r.mapcalc", expression="base = int(dem/dem)", overwrite=True
+        "r.mapcalc", expression=f"base = int({dem}/{dem})", overwrite=True
     )
     grass.run_command(
         "r.stats.zonal",

@@ -157,7 +157,6 @@ def slope_units(
             "Please remove the raster MASK first, before running this module"
         )
 
-    # diff
     # setting the mask on the DTM
     exp = "$out = if(isnull($mask), null(), 1)"
     grass.mapcalc(exp, out="MASK", mask=dem, quiet=True)
@@ -251,7 +250,6 @@ def slope_units(
 
         rm_rasters.append("slu_r")
 
-        # diff
         if grass.find_file(name="MASK", element="cell")["file"]:
             grass.run_command("r.mask", flags="r", quiet=True)
         exp = "$out = if(isnull($mask), null(), 1)"
@@ -342,7 +340,7 @@ def slope_units(
         grass.run_command(
             "g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True
         )
-        if areamax:
+        if options["areamax"]:
             exp = "$out = if($a > $f || ($a > $b && $c > $d), $g, null())"
             grass.mapcalc(
                 exp,

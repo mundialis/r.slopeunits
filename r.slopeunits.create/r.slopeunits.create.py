@@ -157,6 +157,7 @@ def slope_units(
             "Please remove the raster MASK first, before running this module"
         )
 
+    # diff
     # setting the mask on the DTM
     exp = "$out = if(isnull($mask), null(), 1)"
     grass.mapcalc(exp, out="MASK", mask=dem, quiet=True)
@@ -250,6 +251,7 @@ def slope_units(
 
         rm_rasters.append("slu_r")
 
+        # diff
         if grass.find_file(name="MASK", element="cell")["file"]:
             grass.run_command("r.mask", flags="r", quiet=True)
         exp = "$out = if(isnull($mask), null(), 1)"
@@ -340,7 +342,7 @@ def slope_units(
         grass.run_command(
             "g.remove", type="raster", name="slu_r_todo", flags="f", quiet=True
         )
-        if options["areamax"]:
+        if areamax:
             exp = "$out = if($a > $f || ($a > $b && $c > $d), $g, null())"
             grass.mapcalc(
                 exp,
@@ -396,10 +398,10 @@ def slope_units(
             # of the loop
             grass.run_command(
                 "g.copy",
-                rast=("slu_r_todo,slu_r_todo_{counter}"),
+                rast=(f"slu_r_todo,slu_r_todo_{counter}"),
                 quiet=True,
             )
-            rm_rasters.append("slu_r_todo_{counter}")
+            rm_rasters.append(f"slu_r_todo_{counter}")
             grass.run_command(
                 "r.mask", raster="slu_r_todo", flags="i", quiet=True
             )
@@ -409,27 +411,27 @@ def slope_units(
                 output="slu_r_" + str(counter),
                 quiet=True,
             )
-            rm_rasters.append("slu_r_{counter}")
+            rm_rasters.append(f"slu_r_{counter}")
             grass.run_command(
                 "g.copy",
                 rast=("slu_r_" + str(counter), "slu_r_prova_" + str(counter)),
                 quiet=True,
             )
-            rm_rasters.append("slu_r_prova_{counter}")
+            rm_rasters.append(f"slu_r_prova_{counter}")
             grass.run_command(
                 "r.patch",
                 input=("cvar_" + str(last_counter), "cvar"),
                 output="cvar_" + str(counter),
                 quiet=True,
             )
-            rm_rasters.append("cvar_{counter}")
+            rm_rasters.append(f"cvar_{counter}")
             grass.run_command(
                 "r.patch",
                 input=("count_" + str(last_counter), "count"),
                 output="count_" + str(counter),
                 quiet=True,
             )
-            rm_rasters.append("count_{counter}")
+            rm_rasters.append(f"count_{counter}")
 
             grass.run_command("r.mask", flags="r", quiet=True)
 

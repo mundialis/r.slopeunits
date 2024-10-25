@@ -60,7 +60,7 @@
 # %option
 # % key: areamin
 # % type: double
-# % description: Minimum area (m^2) below whitch the slope unit is not further segmented
+# % description: Minimum area (m^2) below which the slope unit is not further segmented
 # % required : yes
 # %end
 
@@ -74,7 +74,7 @@
 # %option
 # % key: cvmin
 # % type: double
-# % description: Minimum value of the circular variance (0.0-1.0) below whitch the slope unit is not further segmented
+# % description: Minimum value of the circular variance (0.0-1.0) below which the slope unit is not further segmented
 # % required : yes
 # %end
 

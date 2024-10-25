@@ -38,6 +38,20 @@
 # % required: yes
 # %end
 
+# %option G_OPT_R_OUTPUT
+# % key: slumap
+# % description: Slope Units layer (the main output of r.slopeunits.create)
+# % required : yes
+# % answer: su_tmp
+# %end
+
+# %option G_OPT_R_OUTPUT
+# % key: slumapclean
+# % description: Slope Units layer, cleaned (the main output of r.slopeunits.clean)
+# % required : no
+# % answer: su_tmp_cl
+# %end
+
 # %option
 # % key: thresh
 # % type: double
@@ -67,6 +81,42 @@
 # % required: yes
 # %end
 
+# %option
+# % key: cvmin
+# % type: double
+# % answer: 0.05,0.25
+# % description: Start search with these initial minimum and maximum values of the circular variance (0.0-1.0) below which the slope unit is not further segmented
+# % multiple : no
+# % key_desc : min,max
+# % required : yes
+# %end
+
+# %option
+# % key: areamin
+# % type: double
+# % answer: 50000.0,200000.0
+# % description: Start search with these initial minimum and maximum values of the area (m^2) below which the slope unit is not further segmented
+# % multiple : no
+# % key_desc : min,max
+# % required : yes
+# %end
+
+# %option
+# % key: epsilonx
+# % type: double
+# % answer: 0.01
+# % description: Stop loop when difference of cvmin limits is lesser than this value
+# % required: yes
+# %end
+
+# %option
+# % key: epsilony
+# % type: double
+# % answer: 50000
+# % description: Stop loop when difference of areamin limits is lesser than this value
+# % required: yes
+# %end
+
 
 import atexit
 import math
@@ -75,10 +125,7 @@ import os
 import grass.script as grass
 
 # TODO make configurable or get rid of all temp files
-outdir = "/workdir/test/outdir_test05_py"
-# TODO make configurable?
-#         "slumap=su_tmp",
-#         "slumapclean=su_tmp_cl",
+outdir = "/workdir/test/outdir_test05_ga22"
 
 # initialize global vars
 rm_rasters = []
@@ -109,32 +156,27 @@ def cleanup():
 
 
 def run_batch(
-    x, y, outdir, basin, dem, redf, maxiteration, thresh, cleansize, plainsmap
+    cvmin,
+    areamin,
+    basin,
+    dem,
+    slumap,
+    slumapclean,
+    redf,
+    maxiteration,
+    thresh,
+    cleansize,
+    plainsmap,
 ):
-    """Calls r.slopeunits.create, r.slopeunits.clean and r.slopeunits.metrics
-
-    Args:
-        x (_type_): _description_
-        y (_type_): _description_
-        outdir (_type_): _description_
-        basin (_type_): _description_
-        dem (_type_): _description_
-        redf (_type_): _description_
-        maxiteration (_type_): _description_
-        thresh (_type_): _description_
-        cleansize (_type_): _description_
-        plainsmap (_type_): _description_
-    """
+    """Calls r.slopeunits.create, r.slopeunits.clean and r.slopeunits.metrics"""
     global COUNT_GLOBAL
     global gisdbase
     global location
     global master_mapset
 
     COUNT_GLOBAL += 1
-    # cval = x
-    # aval = y
-    mapset_prefix = "tmp_su"
     ico = COUNT_GLOBAL
+    mapset_prefix = "tmp_su"
     nome_mapset = f"{mapset_prefix}_{ico}"
 
     grass.utils.try_rmdir(os.path.join(gisdbase, location, nome_mapset))
@@ -146,16 +188,18 @@ def run_batch(
         align=f"{dem}@{master_mapset}",
     )
 
-    grass.message(f"Calculating slopeunits for x={str(x)} and y={str(y)} ...")
-
+    grass.message(
+        f"Calculating slopeunits for cvmin={str(cvmin)} and "
+        f"areamin={str(areamin)} ..."
+    )
     grass.run_command(
         "r.slopeunits.create",
         demmap=f"{dem}@{master_mapset}",
         plainsmap=f"{plainsmap}@{master_mapset}",
-        slumap="su_tmp",
+        slumap=slumap,
         thresh=thresh,
-        areamin=y,
-        cvmin=x,
+        areamin=areamin,
+        cvmin=cvmin,
         rf=redf,
         maxiteration=maxiteration,
         overwrite=True,
@@ -164,8 +208,8 @@ def run_batch(
         "r.slopeunits.clean",
         demmap=f"{dem}@{master_mapset}",
         plainsmap=f"{plainsmap}@{master_mapset}",
-        slumap="su_tmp",
-        slumapclean="su_tmp_cl",
+        slumap=slumap,
+        slumapclean=slumapclean,
         cleansize=cleansize,
         flags=["m"],
         overwrite=True,
@@ -173,12 +217,11 @@ def run_batch(
 
     region = grass.parse_command("g.region", flags="pg")
     resolution = math.floor(float(region["ewres"]) * float(region["nsres"]))
-    outfile = f"{outdir}/objf_{ico}.dat"
 
     grass.run_command(
         "r.to.vect",
-        input="su_tmp_cl",
-        output="su_tmp_cl",
+        input=slumapclean,
+        output=slumapclean,
         type="area",
         overwrite=True,
         quiet=True,
@@ -186,22 +229,24 @@ def run_batch(
     grass.run_command(
         "g.remove",
         type="raster",
-        name="su_tmp,su_tmp_cl",
+        name=f"{slumap},{slumapclean}",
         flags="f",
         quiet=True,
     )
 
-    grass.message(f"Calculating metrics for x={str(x)} and y={str(y)} ...")
-    grass.run_command(
+    grass.message(
+        f"Calculating metrics for cvmin={str(cvmin)} and "
+        "areamin={str(areamin)} ..."
+    )
+    metrics = grass.run_command(
         "r.slopeunits.metrics",
         basin=basin,
         dem=dem,
-        slumapclean="su_tmp_cl",
+        slumapclean=slumapclean,
         cleansize=cleansize,
-        areamin=y,
-        cvmin=x,
+        areamin=areamin,
+        cvmin=cvmin,
         resolution=resolution,
-        outfile=outfile,
     )
 
     grass.message(f"exe no. {ico}: done")
@@ -209,13 +254,17 @@ def run_batch(
     grass.run_command("g.mapset", mapset=master_mapset)
     grass.utils.try_rmdir(os.path.join(gisdbase, location, nome_mapset))
 
+    return metrics
+
 
 def calcola_loop(
-    x,
-    y,
+    cvmin,
+    areamin,
     outdir,
     basin,
     dem,
+    slumap,
+    slumapclean,
     redf,
     maxiteration,
     thresh,
@@ -223,21 +272,7 @@ def calcola_loop(
     plainsmap,
     ico,
 ):
-    """_summary_
-
-    Args:
-        x (_type_): _description_
-        y (_type_): _description_
-        outdir (_type_): _description_
-        basin (_type_): _description_
-        dem (_type_): _description_
-        redf (_type_): _description_
-        maxiteration (_type_): _description_
-        thresh (_type_): _description_
-        cleansize (_type_): _description_
-        plainsmap (_type_): _description_
-        ico (_type_): _description_
-    """
+    """Wrapper for calculating slopeunits and metrics to parse the data"""
 
     global COUNT_GLOBAL
 
@@ -247,7 +282,8 @@ def calcola_loop(
             (
                 float(line.split()[2])
                 for line in file
-                if float(line.split()[0]) == x and float(line.split()[1]) == y
+                if float(line.split()[0]) == cvmin
+                and float(line.split()[1]) == areamin
             ),
             None,
         )
@@ -255,27 +291,26 @@ def calcola_loop(
     # found_v will be None if no match was found
     if not found_v:
         # Not calculated before. We call run_batch and calculate this point
-        run_batch(
-            x,
-            y,
-            outdir,
+        metrics = run_batch(
+            cvmin,
+            areamin,
             basin,
             dem,
+            slumap,
+            slumapclean,
             redf,
             maxiteration,
             thresh,
             cleansize,
             plainsmap,
         )
-        file_path = os.path.join(outdir, f"objf_{COUNT_GLOBAL}.dat")
-        with open(file_path, "r") as file:
-            out1 = f"{float(file.read().split()[2]):16.14f}"
-        with open(file_path, "r") as file:
-            out2 = f"{float(file.read().split()[3]):16.9f}".strip()
-
-        grass.message(f"Writing to calcd.dat: {x} {y} {out1} {out2} ...")
+        out1 = f"{float(metrics['v_fin']):16.14f}"
+        out2 = f"{float(metrics['i_fin']):16.9f}".strip()
+        grass.message(
+            f"Writing to calcd.dat: {cvmin} {areamin} {out1} {out2} ..."
+        )
         with open(os.path.join(outdir, "calcd.dat"), "a") as file:
-            file.write(f"{x} {y} {out1} {out2}\n")
+            file.write(f"{cvmin} {areamin} {out1} {out2}\n")
 
     else:
         # found_v found - x and y already processed and in file
@@ -290,16 +325,18 @@ def calcola_loop(
                 (
                     float(line.split()[3])
                     for line in file
-                    if float(line.split()[0]) == x
-                    and float(line.split()[1]) == y
+                    if float(line.split()[0]) == cvmin
+                    and float(line.split()[1]) == areamin
                 ),
                 None,
             )
         out2 = float(f"{found_i:16.14f}")
 
-    grass.message(f"Writing to current.txt: {ico} {x} {y} {out1} {out2} ...")
+    grass.message(
+        f"Writing to current.txt: {ico} {cvmin} {areamin} {out1} {out2} ..."
+    )
     with open(os.path.join(outdir, "current.txt"), "a") as file:
-        file.write(f"{ico} {x} {y} {out1} {out2}\n")
+        file.write(f"{ico} {cvmin} {areamin} {out1} {out2}\n")
 
 
 def calcola_current(
@@ -308,41 +345,33 @@ def calcola_current(
     outdir,
     basin,
     dem,
+    slumap,
+    slumapclean,
     redf,
     maxiteration,
     thresh,
     cleansize,
     plainsmap,
 ):
-    """_summary_
-
-    Args:
-        x_lims (_type_): _description_
-        y_lims (_type_): _description_
-        outdir (_type_): _description_
-        basin (_type_): _description_
-        dem (_type_): _description_
-        redf (_type_): _description_
-        maxiteration (_type_): _description_
-        thresh (_type_): _description_
-        cleansize (_type_): _description_
-        plainsmap (_type_): _description_
+    """Calculates slope units & corresponding F(a,c)
+    on the four current points and the fifth, central point
     """
 
     ico = 0
 
-    # TODO check if they need to be duplicated
     x_lims_local = x_lims.copy()
     y_lims_local = y_lims.copy()
 
-    for x in x_lims_local:
-        for y in y_lims_local:
+    for cvmin in x_lims_local:
+        for areamin in y_lims_local:
             calcola_loop(
-                x,
-                y,
+                cvmin,
+                areamin,
                 outdir,
                 basin,
                 dem,
+                slumap,
+                slumapclean,
                 redf,
                 maxiteration,
                 thresh,
@@ -365,7 +394,6 @@ def calcola_current(
     # decimal.Decimal(y_lims_local[0]) + decimal.Decimal(y_lims_local[1])) / 2
     # x_half = f"{x_tmp:.14f}"
     # y_half = f"{y_tmp:.9f}"
-    # # 0.15000000000000 125000 0.15000000000000 125000.000000000
 
     x_half = (x_lims_local[0] + x_lims_local[1]) / 2
     y_half = (y_lims_local[0] + y_lims_local[1]) / 2
@@ -377,6 +405,8 @@ def calcola_current(
         outdir,
         basin,
         dem,
+        slumap,
+        slumapclean,
         redf,
         maxiteration,
         thresh,
@@ -542,17 +572,29 @@ def calculate_new_limits_caso_4(x_lims_cur, y_lims_cur):
 
 
 def main():
-    """Main function of r.slopeunits.metrics"""
+    """Main function of r.slopeunits.optimize"""
     global rm_rasters, rm_vectors
     global COUNT_GLOBAL
 
     dem = options["demmap"]
     plainsmap = options["plainsmap"]
+    slumap = options["slumap"]
+    slumapclean = options["slumapclean"]
     thresh = float(options["thresh"])
     redf = int(options["rf"])
     maxiteration = int(options["maxiteration"])
     cleansize = options["cleansize"]
     basin = options["basin"]
+    x_lims = [
+        float(options["cvmin"].split(",")[0]),
+        float(options["cvmin"].split(",")[1]),
+    ]
+    y_lims = [
+        float(options["areamin"].split(",")[0]),
+        float(options["areamin"].split(",")[1]),
+    ]
+    epsilonx = options["epsilonx"]
+    epsilony = options["epsilony"]
 
     # Clean start
     grass.utils.try_rmdir(outdir)
@@ -561,18 +603,9 @@ def main():
     with open(os.path.join(outdir, "calcd.dat"), "w") as file:
         file.write("")
 
-    # Start search: initial limits (x is cvar; y is amin)
-    x_lims = [0.05000000000000, 0.25000000000000]
-    y_lims = [50000.0000000000, 200000.000000000]
+    x_lims_cur = x_lims.copy()
+    y_lims_cur = y_lims.copy()
 
-    # TODO: check if setting these is needed
-    x_lims_old = x_lims.copy()
-    y_lims_old = y_lims.copy()
-    x_lims_cur = x_lims_old.copy()
-    y_lims_cur = y_lims_old.copy()
-
-    epsilonx = 0.01
-    epsilony = 50000
     istop = 0
     count = 0
 
@@ -581,14 +614,14 @@ def main():
         with open(os.path.join(outdir, "current.txt"), "w"):
             pass
 
-        # this function calculates slope units & corresponding F(a,c)
-        # one the four current points
         calcola_current(
             x_lims_cur,
             y_lims_cur,
             outdir,
             basin,
             dem,
+            slumap,
+            slumapclean,
             redf,
             maxiteration,
             thresh,

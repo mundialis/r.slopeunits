@@ -32,6 +32,12 @@
 # % required : yes
 # %end
 
+# %option G_OPT_V_INPUT
+# % key: basin
+# % description: Input basin passed to r.slopeunits.metrics
+# % required: yes
+# %end
+
 # %option
 # % key: thresh
 # % type: double
@@ -61,12 +67,6 @@
 # % required: yes
 # %end
 
-# %option
-# % key: basin
-# % type: string
-# % description: Input passed to r.slopeunits.metrics
-# % required: yes
-# %end
 
 import atexit
 import math
@@ -76,6 +76,9 @@ import grass.script as grass
 
 # TODO make configurable or get rid of all temp files
 outdir = "/workdir/test/outdir_test05_py"
+# TODO make configurable?
+#         "slumap=su_tmp",
+#         "slumapclean=su_tmp_cl",
 
 # initialize global vars
 rm_rasters = []
@@ -145,53 +148,28 @@ def run_batch(
 
     grass.message(f"Calculating slopeunits for x={str(x)} and y={str(y)} ...")
 
-    # TODO use GRASS GIS in python with our addons when they are ready
-    import subprocess
-
-    process = subprocess.Popen(
-        [
-            "/workdir/test/r.slopeunits",
-            f"demmap={dem}@{master_mapset}",
-            "slumap=su_tmp",
-            "slumapclean=su_tmp_cl",
-            f"redf={redf}",
-            f"maxiteration={maxiteration}",
-            f"thresh={thresh}",
-            f"areamin={y}",
-            f"cvmin={x}",
-            f"cleansize={cleansize}",
-            f"plainsmap={plainsmap}@{master_mapset}",
-            "-m",
-            "--o",
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+    grass.run_command(
+        "r.slopeunits.create",
+        demmap=f"{dem}@{master_mapset}",
+        plainsmap=f"{plainsmap}@{master_mapset}",
+        slumap="su_tmp",
+        thresh=thresh,
+        areamin=y,
+        cvmin=x,
+        rf=redf,
+        maxiteration=maxiteration,
+        overwrite=True,
     )
-    stdout, stderr = process.communicate()
-    # stdout
-    # stderr
-
-    # grass.run_command(
-    #     "r.slopeunits.create",
-    #     demmap=f"{dem}@{master_mapset}",
-    #     plainsmap=f"{plainsmap}@{master_mapset}",
-    #     slumap="su_tmp",
-    #     thresh=thresh,
-    #     areamin=y,
-    #     cvmin=x,
-    #     rf=redf,
-    #     maxiteration=maxiteration,
-    #     overwrite=True,
-    # )
-    # grass.run_command(
-    #     "r.slopeunits.clean",
-    #     demmap=f"{dem}@{master_mapset}",
-    #     plainsmap=f"{plainsmap}@{master_mapset}",
-    #     slumap="su_tmp",
-    #     slumapclean="su_tmp_cl",
-    #     cleansize=cleansize,
-    #     flags=["m"],
-    # )
+    grass.run_command(
+        "r.slopeunits.clean",
+        demmap=f"{dem}@{master_mapset}",
+        plainsmap=f"{plainsmap}@{master_mapset}",
+        slumap="su_tmp",
+        slumapclean="su_tmp_cl",
+        cleansize=cleansize,
+        flags=["m"],
+        overwrite=True,
+    )
 
     region = grass.parse_command("g.region", flags="pg")
     resolution = math.floor(float(region["ewres"]) * float(region["nsres"]))
@@ -214,43 +192,17 @@ def run_batch(
     )
 
     grass.message(f"Calculating metrics for x={str(x)} and y={str(y)} ...")
-
-    # TODO use GRASS GIS in python with our addon when ready
-    import subprocess
-
-    process = subprocess.Popen(
-        [
-            "python",
-            "/workdir/test/calculate_metric_alt2.py",
-            f"{basin}",
-            f"{dem}",
-            "su_tmp_cl",
-            f"{cleansize}",
-            f"{ico}",
-            f"{y}",
-            f"{x}",
-            f"{resolution}",
-            f"{outfile}",
-        ],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
+    grass.run_command(
+        "r.slopeunits.metrics",
+        basin=basin,
+        dem=dem,
+        slumapclean="su_tmp_cl",
+        cleansize=cleansize,
+        areamin=y,
+        cvmin=x,
+        resolution=resolution,
+        outfile=outfile,
     )
-    stdout, stderr = process.communicate()
-    # stdout
-    # stderr
-
-    # grass.run_command(
-    #     "r.slopeunits.metrics",
-    #     basin=f{basin}",
-    #     dem=f"{dem}",
-    #     sucl="su_tmp_cl",
-    #     thr_clean=f"{cleansize}",
-    #     uid=f"{ico}",
-    #     areamin=f"{aval}",
-    #     cvmin=f"{cval}",
-    #     res=f"{resolution}",
-    #     outfile=f"{outfile}",
-    # )
 
     grass.message(f"exe no. {ico}: done")
 
@@ -770,6 +722,7 @@ def main():
         file.write(f"x_opt: {x_opt}\n")
         file.write(f"y_opt: {y_opt}\n")
 
+    # TODO remove current.txt? Or write sorted_results to it?
     # with open(f"{outdir}/current.txt", "r") as f:
     #     print(f.read())
     for result in sorted_results:

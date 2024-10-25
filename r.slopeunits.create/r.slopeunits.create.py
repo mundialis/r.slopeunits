@@ -521,7 +521,7 @@ def slope_units(
                         grass.mapcalc(
                             exp,
                             out="slu_r_test_" + str(counter),
-                            a="slu_diversity_" + str(counter),
+                            a="@slu_diversity_" + str(counter),
                             d="todocount_" + str(counter),
                             quiet=True,
                         )
@@ -596,14 +596,14 @@ def slope_units(
     grass.mapcalc(
         exp,
         out="cvar_final",
-        a="cvar_" + str(last_counter),
+        a="cvar_" + str(counter),
         quiet=True,
     )
     exp = "$out = $a"
     grass.mapcalc(
         exp,
         out="count_final",
-        a="count_" + str(last_counter),
+        a="count_" + str(counter),
         quiet=True,
     )
 

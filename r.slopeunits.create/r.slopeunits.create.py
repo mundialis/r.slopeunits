@@ -60,7 +60,7 @@
 # %option
 # % key: areamin
 # % type: double
-# % description: Minimum area (m^2) below whitch the slope unit is not further segmented
+# % description: Minimum area (m^2) below which the slope unit is not further segmented
 # % required : yes
 # %end
 
@@ -74,7 +74,7 @@
 # %option
 # % key: cvmin
 # % type: double
-# % description: Minimum value of the circular variance (0.0-1.0) below whitch the slope unit is not further segmented
+# % description: Minimum value of the circular variance (0.0-1.0) below which the slope unit is not further segmented
 # % required : yes
 # %end
 
@@ -396,10 +396,10 @@ def slope_units(
             # of the loop
             grass.run_command(
                 "g.copy",
-                rast=("slu_r_todo,slu_r_todo_{counter}"),
+                rast=(f"slu_r_todo,slu_r_todo_{counter}"),
                 quiet=True,
             )
-            rm_rasters.append("slu_r_todo_{counter}")
+            rm_rasters.append(f"slu_r_todo_{counter}")
             grass.run_command(
                 "r.mask", raster="slu_r_todo", flags="i", quiet=True
             )
@@ -409,27 +409,27 @@ def slope_units(
                 output="slu_r_" + str(counter),
                 quiet=True,
             )
-            rm_rasters.append("slu_r_{counter}")
+            rm_rasters.append(f"slu_r_{counter}")
             grass.run_command(
                 "g.copy",
                 rast=("slu_r_" + str(counter), "slu_r_prova_" + str(counter)),
                 quiet=True,
             )
-            rm_rasters.append("slu_r_prova_{counter}")
+            rm_rasters.append(f"slu_r_prova_{counter}")
             grass.run_command(
                 "r.patch",
                 input=("cvar_" + str(last_counter), "cvar"),
                 output="cvar_" + str(counter),
                 quiet=True,
             )
-            rm_rasters.append("cvar_{counter}")
+            rm_rasters.append(f"cvar_{counter}")
             grass.run_command(
                 "r.patch",
                 input=("count_" + str(last_counter), "count"),
                 output="count_" + str(counter),
                 quiet=True,
             )
-            rm_rasters.append("count_{counter}")
+            rm_rasters.append(f"count_{counter}")
 
             grass.run_command("r.mask", flags="r", quiet=True)
 
@@ -521,7 +521,7 @@ def slope_units(
                         grass.mapcalc(
                             exp,
                             out="slu_r_test_" + str(counter),
-                            a="slu_diversity_" + str(counter),
+                            a="@slu_diversity_" + str(counter),
                             d="todocount_" + str(counter),
                             quiet=True,
                         )
@@ -596,14 +596,14 @@ def slope_units(
     grass.mapcalc(
         exp,
         out="cvar_final",
-        a="cvar_" + str(last_counter),
+        a="cvar_" + str(counter),
         quiet=True,
     )
     exp = "$out = $a"
     grass.mapcalc(
         exp,
         out="count_final",
-        a="count_" + str(last_counter),
+        a="count_" + str(counter),
         quiet=True,
     )
 

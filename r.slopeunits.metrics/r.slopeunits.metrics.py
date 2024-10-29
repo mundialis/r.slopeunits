@@ -507,8 +507,8 @@ def main():
     sys.stdout.write(f"i_fin={i_fin}\n")
 
     if options["outfile"]:
-        grass.message(_("Writing output to file"))
-        grass.message(_(output))
+        grass.debug("Writing output to file")
+        grass.debug(output)
         with open(outfile, "w") as file:
             file.write(output)
 

@@ -117,15 +117,20 @@
 # % required: yes
 # %end
 
+# %option G_OPT_M_DIR
+# % key: outdir
+# % description: Output directory for intermediate results for all cvmin and areamin values and final results. Default folder "outdir" in current working directory.
+# % required: yes
+# % answer: outdir
+# %end
+
+# pylint: disable=C0302 (too-many-lines)
 
 import atexit
 import math
 import os
 
 import grass.script as grass
-
-# TODO make configurable or get rid of all temp files
-outdir = "/workdir/test/outdir_test05_ga22"
 
 # initialize global vars
 rm_rasters = []
@@ -260,7 +265,6 @@ def run_batch(
 def calcola_loop(
     cvmin,
     areamin,
-    outdir,
     basin,
     dem,
     slumap,
@@ -271,13 +275,15 @@ def calcola_loop(
     cleansize,
     plainsmap,
     ico,
+    calcd_file,
+    current_file,
 ):
     """Wrapper for calculating slopeunits and metrics to parse the data"""
 
     global COUNT_GLOBAL
 
     # we check if this point was calculated already. We only check for V
-    with open(os.path.join(outdir, "calcd.dat"), "r") as file:
+    with open(calcd_file, "r") as file:
         found_v = next(
             (
                 float(line.split()[2])
@@ -309,7 +315,7 @@ def calcola_loop(
         grass.message(
             f"Writing to calcd.dat: {cvmin} {areamin} {out1} {out2} ..."
         )
-        with open(os.path.join(outdir, "calcd.dat"), "a") as file:
+        with open(calcd_file, "a") as file:
             file.write(f"{cvmin} {areamin} {out1} {out2}\n")
 
     else:
@@ -320,7 +326,7 @@ def calcola_loop(
         )
 
         out1 = float(f"{found_v:16.14f}")
-        with open(os.path.join(outdir, "calcd.dat"), "r") as file:
+        with open(calcd_file, "r") as file:
             found_i = next(
                 (
                     float(line.split()[3])
@@ -335,14 +341,13 @@ def calcola_loop(
     grass.message(
         f"Writing to current.txt: {ico} {cvmin} {areamin} {out1} {out2} ..."
     )
-    with open(os.path.join(outdir, "current.txt"), "a") as file:
+    with open(current_file, "a") as file:
         file.write(f"{ico} {cvmin} {areamin} {out1} {out2}\n")
 
 
 def calcola_current(
     x_lims,
     y_lims,
-    outdir,
     basin,
     dem,
     slumap,
@@ -352,6 +357,8 @@ def calcola_current(
     thresh,
     cleansize,
     plainsmap,
+    calcd_file,
+    current_file,
 ):
     """Calculates slope units & corresponding F(a,c)
     on the four current points and the fifth, central point
@@ -367,7 +374,6 @@ def calcola_current(
             calcola_loop(
                 cvmin,
                 areamin,
-                outdir,
                 basin,
                 dem,
                 slumap,
@@ -378,6 +384,8 @@ def calcola_current(
                 cleansize,
                 plainsmap,
                 ico,
+                calcd_file,
+                current_file,
             )
             ico += 1
 
@@ -402,7 +410,6 @@ def calcola_current(
     calcola_loop(
         x_half,
         y_half,
-        outdir,
         basin,
         dem,
         slumap,
@@ -413,6 +420,8 @@ def calcola_current(
         cleansize,
         plainsmap,
         ico,
+        calcd_file,
+        current_file,
     )
 
 
@@ -595,12 +604,34 @@ def main():
     ]
     epsilonx = options["epsilonx"]
     epsilony = options["epsilony"]
+    outdir = os.path.abspath(options["outdir"])
+
+    calcd_file = os.path.join(outdir, "calcd.dat")
+    current_file = os.path.join(outdir, "current.txt")
+    optimum_file = os.path.join(outdir, "opt.txt")
 
     # Clean start
-    grass.utils.try_rmdir(outdir)
-    os.mkdir(outdir)
+    if os.path.exists(outdir):
+        if grass.overwrite():
+            grass.utils.try_remove(calcd_file)
+            grass.utils.try_remove(current_file)
+            grass.utils.try_remove(optimum_file)
+        else:
+            if (
+                os.path.exists(calcd_file)
+                or os.path.exists(current_file)
+                or os.path.exists(optimum_file)
+            ):
+                grass.fatal(
+                    f"ERROR: One of {calcd_file}, {current_file} or "
+                    f"{optimum_file} exists. To overwrite, use the --overwrite "
+                    "flag"
+                )
+    else:
+        os.mkdir(outdir)
+
     # File will be read before written, so empty file need to exist
-    with open(os.path.join(outdir, "calcd.dat"), "w") as file:
+    with open(calcd_file, "w") as file:
         file.write("")
 
     x_lims_cur = x_lims.copy()
@@ -610,14 +641,13 @@ def main():
     count = 0
 
     while istop == 0:
-        # clean current.txt before method call
-        with open(os.path.join(outdir, "current.txt"), "w"):
+        # clean current_file before method call
+        with open(current_file, "w"):
             pass
 
         calcola_current(
             x_lims_cur,
             y_lims_cur,
-            outdir,
             basin,
             dem,
             slumap,
@@ -627,6 +657,8 @@ def main():
             thresh,
             cleansize,
             plainsmap,
+            calcd_file,
+            current_file,
         )
         count += 1
 
@@ -637,7 +669,7 @@ def main():
             float("inf"),
             float("-inf"),
         )
-        with open(os.path.join(outdir, "calcd.dat"), "r") as file:
+        with open(calcd_file, "r") as file:
             for line in file:
                 fields = line.strip().split()
                 if len(fields) >= 4:
@@ -651,7 +683,7 @@ def main():
         # ... and use them to calculate the metric for the 5 punti of the last
         # calculate rectangle
         results = []
-        with open(os.path.join(outdir, "current.txt"), "r") as file:
+        with open(current_file, "r") as file:
             for line in file:
                 fields = line.strip().split()
                 if len(fields) >= 5:
@@ -663,6 +695,9 @@ def main():
                     results.append(fields + [str(calculated_value)])
         # Sort the results based on the calculated value (6th column)
         sorted_results = sorted(results, key=lambda x: str(x[5]))
+        with open(current_file, "w") as file:
+            for result in sorted_results:
+                file.write(" ".join(result) + "\n")
 
         im1 = float(sorted_results[-1][0])
         xp1 = float(sorted_results[-1][1])
@@ -745,36 +780,17 @@ def main():
                     istop = 1
 
     # end while
-
     x_opt = (x_lims_cur[0] + x_lims_cur[1]) / 2.0
     y_opt = (y_lims_cur[0] + y_lims_cur[1]) / 2.0
     print(f"x_opt: {x_opt}")
     print(f"y_opt: {y_opt}")
 
-    with open(f"{outdir}/opt.txt", "w") as file:
+    with open(optimum_file, "w") as file:
         file.write(f"x_opt: {x_opt}\n")
         file.write(f"y_opt: {y_opt}\n")
 
-    # TODO remove current.txt? Or write sorted_results to it?
-    # with open(f"{outdir}/current.txt", "r") as f:
-    #     print(f.read())
-    for result in sorted_results:
-        print(" ".join(result))
-
-    def print_table(table):
-        longest_cols = [
-            (max([len(str(row[i])) for row in table]) + 3)
-            for i in range(len(table[0]))
-        ]
-        row_format = "".join(
-            ["{:>" + str(longest_col) + "}" for longest_col in longest_cols]
-        )
-        for row in table:
-            print(row_format.format(*row))
-
-    print_table(sorted_results)
-
-    # ico = int(ico) + 1
+    with open(current_file, "r") as file:
+        print(file.read())
 
     # Print function evaluations
     print(f" valutazioni funzione: {COUNT_GLOBAL}")

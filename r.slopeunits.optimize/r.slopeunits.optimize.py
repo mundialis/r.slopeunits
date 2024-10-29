@@ -2,7 +2,7 @@
 #
 ############################################################################
 #
-# MODULE:       r.slopeunits.create for GRASS 8
+# MODULE:       r.slopeunits.optimize for GRASS 8
 # AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli, Carmen Tawalika
 # PURPOSE:      Calculate metrics for slope units
 # COPYRIGHT:    (C) 2004-2024 by the GRASS Development Team

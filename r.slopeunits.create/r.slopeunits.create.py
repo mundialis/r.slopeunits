@@ -717,6 +717,7 @@ def slope_units(
 
 
 def export_as_vect(slumap, slumapvect):
+    """Create vector map from raster map"""
     grass.run_command(
         "r.to.vect", type="area", input=slumap, output=slumapvect
     )

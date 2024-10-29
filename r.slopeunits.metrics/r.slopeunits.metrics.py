@@ -509,7 +509,7 @@ def main():
     if options["outfile"]:
         grass.debug("Writing output to file")
         grass.debug(output)
-        with open(outfile, "w") as file:
+        with open(outfile, "a") as file:
             file.write(output)
 
 

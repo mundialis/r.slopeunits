@@ -49,14 +49,14 @@
 # %option
 # % key: areamin
 # % type: double
-# % description: Minimum area (m^2) below whitch the slope unit is not further segmented
+# % description: Minimum area (m^2) below which the slope unit is not further segmented
 # % required : yes
 # %end
 
 # %option
 # % key: cvmin
 # % type: double
-# % description: Minimum value of the circular variance (0.0-1.0) below whitch the slope unit is not further segmented
+# % description: Minimum value of the circular variance (0.0-1.0) below which the slope unit is not further segmented
 # % required : yes
 # %end
 
@@ -85,7 +85,7 @@ rm_vectors = []
 
 
 def cleanup():
-    """Cleanup fuction"""
+    """Cleanup function"""
     nuldev = open(os.devnull, "w")
     kwargs = {"flags": "f", "quiet": True, "stderr": nuldev}
     for rmrast in rm_rasters:

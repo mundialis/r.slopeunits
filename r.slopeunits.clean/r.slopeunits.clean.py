@@ -85,7 +85,7 @@ rm_vectors = []
 
 
 def cleanup():
-    """Cleanup fuction"""
+    """Cleanup function"""
     nuldev = open(os.devnull, "w")
     kwargs = {"flags": "f", "quiet": True, "stderr": nuldev}
     for rmrast in rm_rasters:

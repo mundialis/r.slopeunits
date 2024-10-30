@@ -5,7 +5,7 @@ PGM = r.slopeunits
 # note: to deactivate a module, just place a file "DEPRECATED" into the subdir
 ALL_SUBDIRS := ${sort ${dir ${wildcard */.}}}
 DEPRECATED_SUBDIRS := ${sort ${dir ${wildcard */DEPRECATED}}}
-RM_SUBDIRS := bin/ docs/ etc/ scripts/
+RM_SUBDIRS := bin/ docs/ etc/ scripts/ testsuite/
 SUBDIRS_1 := $(filter-out $(DEPRECATED_SUBDIRS), $(ALL_SUBDIRS))
 SUBDIRS := $(filter-out $(RM_SUBDIRS), $(SUBDIRS_1))
 

@@ -244,7 +244,7 @@ def run_batch(
         f"Calculating metrics for cvmin={str(cvmin)} and "
         "areamin={str(areamin)} ..."
     )
-    metrics = grass.run_command(
+    metrics = grass.parse_command(
         "r.slopeunits.metrics",
         basin=basin,
         dem=dem,
@@ -603,8 +603,8 @@ def main():
         float(options["areamin"].split(",")[0]),
         float(options["areamin"].split(",")[1]),
     ]
-    epsilonx = options["epsilonx"]
-    epsilony = options["epsilony"]
+    epsilonx = float(options["epsilonx"])
+    epsilony = float(options["epsilony"])
     outdir = os.path.abspath(options["outdir"])
 
     calcd_file = os.path.join(outdir, "calcd.dat")

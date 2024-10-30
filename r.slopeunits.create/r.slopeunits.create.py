@@ -98,6 +98,14 @@
 # % required: yes
 # %end
 
+# %option
+# % key: generalizetresh
+# % type: double
+# % description: Threshold for maximal tolerance value for v.generalize
+# % options: 0-1000000000
+# % answer: 20
+# %end
+
 # %flag
 # % key: g
 # % description: Generalize Slope Units vector layer
@@ -721,13 +729,14 @@ def export_as_vect(slumap, slumapvect):
     grass.run_command(
         "r.to.vect", type="area", input=slumap, output=slumapvect
     )
+    threshold = options["generalizetresh"]
     if flags["g"]:
         grass.run_command(
             "v.generalize",
             input=slumapvect,
             output=f"{slumapvect}_gen",
             method="douglas",
-            threshold=20,
+            threshold=threshold,
         )
 
 

@@ -23,25 +23,25 @@
 # %option G_OPT_R_INPUT
 # % key: demmap
 # % description: Input digital elevation model
-# % required : yes
+# % required: yes
 # %end
 
 # %option G_OPT_R_INPUT
 # % key: plainsmap
 # % description: Input raster map of alluvial plains
-# % required : no
+# % required: no
 # %end
 
 # %option G_OPT_R_OUTPUT
 # % key: slumap
 # % description: Output Slope Units layer (the main output)
-# % required : yes
+# % required: yes
 # %end
 
 # %option G_OPT_R_OUTPUT
 # % key: slumapclean
 # % description: Output Slope Units layer, cleaned (the main output)
-# % required : no
+# % required: no
 # %end
 
 # %option

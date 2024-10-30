@@ -5,7 +5,7 @@
 # MODULE:       r.slopeunits.clean for GRASS 8
 # AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli, Markus Metz
 #               (Refactoring, partly translation to python), Carmen Tawalika
-#               (Make extra addon)
+#               (creation of extra addon)
 # PURPOSE:      Clean slope units layer
 # COPYRIGHT:    (C) 2004-2024 by the GRASS Development Team
 #

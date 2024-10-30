@@ -4,7 +4,8 @@
 #
 # MODULE:       r.slopeunits.optimize for GRASS 8
 # AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli, Carmen Tawalika
-# PURPOSE:      Calculate metrics for slope units
+#               (Translation to python, Refactoring)
+# PURPOSE:      Optimize inputs for slope units
 # COPYRIGHT:    (C) 2004-2024 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
@@ -23,13 +24,13 @@
 # %option G_OPT_R_INPUT
 # % key: demmap
 # % description: Input digital elevation model
-# % required : yes
+# % required: yes
 # %end
 
 # %option G_OPT_R_INPUT
 # % key: plainsmap
 # % description: Input raster map of alluvial plains
-# % required : yes
+# % required: yes
 # %end
 
 # %option G_OPT_V_INPUT
@@ -41,14 +42,14 @@
 # %option G_OPT_R_OUTPUT
 # % key: slumap
 # % description: Slope Units layer (the main output of r.slopeunits.create)
-# % required : yes
+# % required: yes
 # % answer: su_tmp
 # %end
 
 # %option G_OPT_R_OUTPUT
 # % key: slumapclean
 # % description: Slope Units layer, cleaned (the main output of r.slopeunits.clean)
-# % required : no
+# % required: no
 # % answer: su_tmp_cl
 # %end
 
@@ -56,21 +57,21 @@
 # % key: thresh
 # % type: double
 # % description: Initial threshold (m^2)
-# % required : yes
+# % required: yes
 # %end
 
 # %option
 # % key: rf
 # % type: integer
 # % description: Factor used to iterativelly reduce initial threshold
-# % required : yes
+# % required: yes
 # %end
 
 # %option
 # % key: maxiteration
 # % type: integer
 # % description: maximum number of iteration to do before stopped
-# % required : yes
+# % required: yes
 # %end
 
 # %option
@@ -86,9 +87,9 @@
 # % type: double
 # % answer: 0.05,0.25
 # % description: Start search with these initial minimum and maximum values of the circular variance (0.0-1.0) below which the slope unit is not further segmented
-# % multiple : no
-# % key_desc : min,max
-# % required : yes
+# % multiple: no
+# % key_desc: min,max
+# % required: yes
 # %end
 
 # %option
@@ -96,9 +97,9 @@
 # % type: double
 # % answer: 50000.0,200000.0
 # % description: Start search with these initial minimum and maximum values of the area (m^2) below which the slope unit is not further segmented
-# % multiple : no
-# % key_desc : min,max
-# % required : yes
+# % multiple: no
+# % key_desc: min,max
+# % required: yes
 # %end
 
 # %option

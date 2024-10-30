@@ -3,8 +3,9 @@
 ############################################################################
 #
 # MODULE:       r.slopeunits.metrics for GRASS 8
-# AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli
-# PURPOSE:      To create a raster layer of slope units
+# AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli, Carmen Tawalika
+#               (Translation to python)
+# PURPOSE:      Create metrics for slope units
 # COPYRIGHT:    (C) 2004-2024 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
@@ -29,13 +30,13 @@
 # %option G_OPT_R_INPUT
 # % key: demmap
 # % description: Input digital elevation model
-# % required : yes
+# % required: yes
 # %end
 
 # %option G_OPT_R_OUTPUT
 # % key: slumapclean
 # % description: Output Slope Units layer, cleaned (the main output)
-# % required : yes
+# % required: yes
 # %end
 
 # %option
@@ -50,27 +51,27 @@
 # % key: areamin
 # % type: double
 # % description: Minimum area (m^2) below which the slope unit is not further segmented
-# % required : yes
+# % required: yes
 # %end
 
 # %option
 # % key: cvmin
 # % type: double
 # % description: Minimum value of the circular variance (0.0-1.0) below which the slope unit is not further segmented
-# % required : yes
+# % required: yes
 # %end
 
 # %option
 # % key: resolution
 # % type: double
 # % description: Resolution
-# % required : yes
+# % required: yes
 # %end
 
 # %option G_OPT_F_OUTPUT
 # % key: outfile
 # % description: Output file with metrics
-# % required : no
+# % required: no
 # %end
 
 import atexit

@@ -38,6 +38,12 @@
 # % required : yes
 # %end
 
+# %option G_OPT_V_OUTPUT
+# % key: slumapvect
+# % description: Output Slope Units layer as vector layer
+# % required: no
+# %end
+
 # %option G_OPT_R_OUTPUT
 # % key: circvarmap
 # % description: Output Circular Variance layer
@@ -89,7 +95,25 @@
 # % key: maxiteration
 # % type: integer
 # % description: maximum number of iteration to do before the procedure is in any case stopped
-# % required : yes
+# % required: yes
+# %end
+
+# %option
+# % key: generalize_treshold
+# % type: double
+# % description: Threshold for maximal tolerance value for v.generalize
+# % options: 0-1000000000
+# % answer: 20
+# %end
+
+# %flag
+# % key: g
+# % description: Generalize Slope Units vector layer
+# % guisection: flags
+# %end
+
+# %rules
+# % required: g,slumapvect
 # %end
 
 import atexit
@@ -700,6 +724,22 @@ def slope_units(
     grass.message("Slope units calculated.")
 
 
+def export_as_vect(slumap, slumapvect):
+    """Create vector map from raster map"""
+    grass.run_command(
+        "r.to.vect", type="area", input=slumap, output=slumapvect
+    )
+    threshold = options["generalize_treshold"]
+    if flags["g"]:
+        grass.run_command(
+            "v.generalize",
+            input=slumapvect,
+            output=f"{slumapvect}_gen",
+            method="douglas",
+            threshold=threshold,
+        )
+
+
 def main():
     """Main function of r.slopeunits"""
     global rm_rasters, rm_vectors
@@ -730,6 +770,9 @@ def main():
         red,
         maxiter,
     )
+    if options["slumapvect"]:
+        export_as_vect(slumap, options["slumapvect"])
+
     grass.message("Slope units finished.")
 
 

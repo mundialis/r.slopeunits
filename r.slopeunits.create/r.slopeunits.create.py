@@ -23,19 +23,19 @@
 # %option G_OPT_R_INPUT
 # % key: demmap
 # % description: Input digital elevation model
-# % required : yes
+# % required: yes
 # %end
 
 # %option G_OPT_R_INPUT
 # % key: plainsmap
 # % description: Input raster map of alluvial plains
-# % required : no
+# % required: no
 # %end
 
 # %option G_OPT_R_OUTPUT
 # % key: slumap
 # % description: Output Slope Units layer (the main output)
-# % required : yes
+# % required: yes
 # %end
 
 # %option G_OPT_V_OUTPUT
@@ -47,48 +47,48 @@
 # %option G_OPT_R_OUTPUT
 # % key: circvarmap
 # % description: Output Circular Variance layer
-# % required : no
+# % required: no
 # %end
 
 # %option G_OPT_R_OUTPUT
 # % key: areamap
 # % description: Output Area layer; values in square meters
-# % required : no
+# % required: no
 # %end
 
 # %option
 # % key: thresh
 # % type: double
 # % description: Initial threshold (m^2).
-# % required : yes
+# % required: yes
 # %end
 
 # %option
 # % key: areamin
 # % type: double
 # % description: Minimum area (m^2) below which the slope unit is not further segmented
-# % required : yes
+# % required: yes
 # %end
 
 # %option
 # % key: areamax
 # % type: double
 # % description: Maximum area (m^2) above which the slope unit is segmented irrespective of aspect
-# % required : no
+# % required: no
 # %end
 
 # %option
 # % key: cvmin
 # % type: double
 # % description: Minimum value of the circular variance (0.0-1.0) below which the slope unit is not further segmented
-# % required : yes
+# % required: yes
 # %end
 
 # %option
 # % key: rf
 # % type: integer
 # % description: Factor used to iterativelly reduce initial threshold: newthresh=thresh-thresh/reductionfactor
-# % required : yes
+# % required: yes
 # %end
 
 # %option

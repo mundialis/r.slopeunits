@@ -113,7 +113,7 @@
 # %end
 
 # %rules
-# % required: g,slumapvect
+# % requires: -g,slumapvect
 # %end
 
 import atexit

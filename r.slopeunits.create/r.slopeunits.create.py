@@ -129,7 +129,7 @@ rm_vectors = []
 
 
 def cleanup():
-    """Cleanup fuction"""
+    """Cleanup function"""
     nuldev = open(os.devnull, "w")
     kwargs = {"flags": "f", "quiet": True, "stderr": nuldev}
     for rmrast in rm_rasters:
@@ -232,7 +232,7 @@ def slope_units(
     # (control=0),
     # OR the number of allowed iteration is exceeded (counter>maxiter) OR the
     # threshold
-    # (cells) is greather/equal than the reduction factor (thc >= red) otherwise
+    # (cells) is greater/equal than the reduction factor (thc >= red) otherwise
     # int(thc-thc/red)
     # remains equal to thc
     while control > 0 and counter < maxiter and thc >= red:

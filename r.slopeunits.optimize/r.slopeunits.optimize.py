@@ -144,7 +144,7 @@ master_mapset = env["MAPSET"]
 
 
 def cleanup():
-    """Cleanup fuction"""
+    """Cleanup function"""
     nuldev = open(os.devnull, "w")
     kwargs = {"flags": "f", "quiet": True, "stderr": nuldev}
     for rmrast in rm_rasters:
@@ -447,7 +447,7 @@ def calculate_new_limits_caso_1(im1, im2, x_lims_cur, y_lims_cur):
     #     x_lims_new[1]=$x_max
     #     y_lims_new[0]=$y_min
     #     y_lims_new[1]=$y_max
-    # now I use a slighly larger rectangle
+    # now I use a slightly larger rectangle
     if im1 == 2 or im2 == 2:
         caso = "1a)"
         tmp1 = (2.0 * x_lims_cur[0] + x_lims_cur[1]) / 3.0

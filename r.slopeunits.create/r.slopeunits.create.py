@@ -726,8 +726,8 @@ def export_as_vect(slumap, slumapvect):
             "v.generalize",
             input=slumapvect,
             output=f"{slumapvect}_gen",
-            method="TODO",
-            threshold="TODO",
+            method="douglas",
+            threshold=20,
         )
 
 

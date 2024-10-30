@@ -99,7 +99,7 @@
 # %end
 
 # %option
-# % key: generalizetresh
+# % key: generalize_treshold
 # % type: double
 # % description: Threshold for maximal tolerance value for v.generalize
 # % options: 0-1000000000
@@ -729,7 +729,7 @@ def export_as_vect(slumap, slumapvect):
     grass.run_command(
         "r.to.vect", type="area", input=slumap, output=slumapvect
     )
-    threshold = options["generalizetresh"]
+    threshold = options["generalize_treshold"]
     if flags["g"]:
         grass.run_command(
             "v.generalize",

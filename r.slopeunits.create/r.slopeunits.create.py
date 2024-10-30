@@ -40,8 +40,8 @@
 
 # %option G_OPT_V_OUTPUT
 # % key: slumapvect
-# % description: Output Slope Units layer as vector
-# % required : no
+# % description: Output Slope Units layer as vector layer
+# % required: no
 # %end
 
 # %option G_OPT_R_OUTPUT
@@ -95,7 +95,7 @@
 # % key: maxiteration
 # % type: integer
 # % description: maximum number of iteration to do before the procedure is in any case stopped
-# % required : yes
+# % required: yes
 # %end
 
 # %flag

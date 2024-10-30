@@ -2,10 +2,10 @@
 #
 ############################################################################
 #
-# MODULE:       r.slopeunits.create for GRASS 7
-# AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli
+# MODULE:       r.slopeunits.create for GRASS 8
+# AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli, Markus Metz (Refactoring)
 # PURPOSE:      To create a raster layer of slope units
-# COPYRIGHT:    (C) 2004-2012 by the GRASS Development Team
+# COPYRIGHT:    (C) 2004-2024 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public
 #               License (>=v2). Read the file COPYING that comes with GRASS

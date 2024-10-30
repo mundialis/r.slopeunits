@@ -4,7 +4,8 @@
 #
 # MODULE:       r.slopeunits.optimize for GRASS 8
 # AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli, Carmen Tawalika
-# PURPOSE:      Calculate metrics for slope units
+#               (Translation to python, Refactoring)
+# PURPOSE:      Optimize inputs for slope units
 # COPYRIGHT:    (C) 2004-2024 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public

@@ -3,8 +3,9 @@
 ############################################################################
 #
 # MODULE:       r.slopeunits.metrics for GRASS 8
-# AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli
-# PURPOSE:      To create a raster layer of slope units
+# AUTHOR(S):    Ivan Marchesini, Massimiliano Alvioli, Carmen Tawalika
+#               (Translation to python)
+# PURPOSE:      Create metrics for slope units
 # COPYRIGHT:    (C) 2004-2024 by the GRASS Development Team
 #
 #               This program is free software under the GNU General Public

@@ -213,7 +213,7 @@ def run_batch(
         f"Calculating slopeunits for cvmin={str(cvmin)} and "
         f"areamin={str(areamin)} ..."
     )
-    if flags['s']:
+    if flags["s"]:
         rwflags = "s"
     else:
         rwflags = ""

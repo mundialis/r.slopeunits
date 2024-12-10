@@ -172,7 +172,7 @@ def slope_units(
     cvarmin=-1.0,
     red=-1,
     maxiter=0,
-    convergence=5
+    convergence=5,
 ):
     """core slope unit calculation"""
 
@@ -266,7 +266,7 @@ def slope_units(
         grass.run_command(
             "g.remove", type="raster", name="slu_r_tmp", flags="f", quiet=True
         )
-        if flags['s']:
+        if flags["s"]:
             rwflags = "abs"
         else:
             rwflags = "ab"

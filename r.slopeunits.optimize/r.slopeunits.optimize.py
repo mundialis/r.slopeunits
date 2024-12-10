@@ -187,7 +187,7 @@ def run_batch(
     thresh,
     cleansize,
     plainsmap,
-    convergence
+    convergence,
 ):
     """Calls r.slopeunits.create, r.slopeunits.clean and r.slopeunits.metrics"""
     global COUNT_GLOBAL

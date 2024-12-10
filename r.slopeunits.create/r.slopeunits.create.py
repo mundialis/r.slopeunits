@@ -276,7 +276,7 @@ def slope_units(
             hbasin="slu_r_tmp",
             thresh=thc,
             convergence=convergence,
-            flags="ab",
+            flags=rwflags,
             quiet=True,
         )
         rm_rasters.append("slu_r_tmp")
@@ -791,7 +791,7 @@ def main():
         cvarmin,
         red,
         maxiter,
-        convergence
+        convergence,
     )
     if options["slumapvect"]:
         export_as_vect(slumap, options["slumapvect"])

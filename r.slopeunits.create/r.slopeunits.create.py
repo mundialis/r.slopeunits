@@ -131,6 +131,8 @@
 # % requires: -g,slumapvect
 # %end
 
+# pylint: disable=C0302 (too-many-lines)
+
 import atexit
 import os
 

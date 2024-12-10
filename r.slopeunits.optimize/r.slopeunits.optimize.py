@@ -190,8 +190,8 @@ def run_batch(
     grass.run_command("g.mapsets", mapset=master_mapset, operation="add")
     grass.run_command(
         "g.region",
-        vect=f"{basin}@{master_mapset}",
-        align=f"{dem}@{master_mapset}",
+        vect=basin,
+        align=dem,
     )
 
     grass.message(
@@ -200,10 +200,10 @@ def run_batch(
     )
     kwargs = {}
     if plainsmap:
-        kwargs["plainsmap"] = f"{plainsmap}@{master_mapset}"
+        kwargs["plainsmap"] = plainsmap
     grass.run_command(
         "r.slopeunits.create",
-        demmap=f"{dem}@{master_mapset}",
+        demmap=dem,
         slumap=slumap,
         thresh=thresh,
         areamin=areamin,
@@ -215,7 +215,7 @@ def run_batch(
     )
     grass.run_command(
         "r.slopeunits.clean",
-        demmap=f"{dem}@{master_mapset}",
+        demmap=dem,
         slumap=slumap,
         slumapclean=slumapclean,
         cleansize=cleansize,
@@ -589,10 +589,13 @@ def main():
     global rm_rasters, rm_vectors
     global COUNT_GLOBAL
 
-    # TODO: some input maps must be in the master_mapset and not in another mapset
-    # TODO: strip @mapset from these input maps
+    # pass fully qualified names of input maps
     dem = options["demmap"]
+    if "@" not in dem:
+        dem = grass.find_file(dem, element="cell")["fullname"]
     plainsmap = options["plainsmap"]
+    if plainsmap and "@" not in plainsmap:
+        plainsmap = grass.find_file(plainsmap, element="cell")["fullname"]
     slumap = options["slumap"]
     slumapclean = options["slumapclean"]
     thresh = float(options["thresh"])
@@ -600,6 +603,8 @@ def main():
     maxiteration = int(options["maxiteration"])
     cleansize = options["cleansize"]
     basin = options["basin"]
+    if "@" not in basin:
+        basin = grass.find_file(basin, element="vector")["fullname"]
     x_lims = [
         float(options["cvmin"].split(",")[0]),
         float(options["cvmin"].split(",")[1]),

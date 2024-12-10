@@ -125,6 +125,20 @@
 # % answer: outdir
 # %end
 
+# %option
+# % key: convergence
+# % type: integer
+# % label: Convergence factor for MFD in r.watershed (1-10)
+# % description: 1 = most diverging flow, 10 = most converging flow. Recommended: 5
+# % answer: 5
+# %end
+
+# %flag
+# % key: s
+# % label: SFD (D8) flow in r.watershed (default is MFD)
+# % description: SFD: single flow direction, MFD: multiple flow direction
+# %end
+
 # pylint: disable=C0302 (too-many-lines)
 
 import atexit
@@ -173,6 +187,7 @@ def run_batch(
     thresh,
     cleansize,
     plainsmap,
+    convergence
 ):
     """Calls r.slopeunits.create, r.slopeunits.clean and r.slopeunits.metrics"""
     global COUNT_GLOBAL
@@ -198,6 +213,10 @@ def run_batch(
         f"Calculating slopeunits for cvmin={str(cvmin)} and "
         f"areamin={str(areamin)} ..."
     )
+    if flags['s']:
+        rwflags = "s"
+    else:
+        rwflags = ""
     grass.run_command(
         "r.slopeunits.create",
         demmap=f"{dem}@{master_mapset}",
@@ -208,6 +227,8 @@ def run_batch(
         cvmin=cvmin,
         rf=redf,
         maxiteration=maxiteration,
+        convergence=convergence,
+        flags=rwflags,
         overwrite=True,
     )
     grass.run_command(
@@ -275,6 +296,7 @@ def calcola_loop(
     thresh,
     cleansize,
     plainsmap,
+    convergence,
     ico,
     calcd_file,
     current_file,
@@ -310,6 +332,7 @@ def calcola_loop(
             thresh,
             cleansize,
             plainsmap,
+            convergence,
         )
         out1 = f"{float(metrics['v_fin']):16.14f}"
         out2 = f"{float(metrics['i_fin']):16.9f}".strip()
@@ -358,6 +381,7 @@ def calcola_current(
     thresh,
     cleansize,
     plainsmap,
+    convergence,
     calcd_file,
     current_file,
 ):
@@ -384,6 +408,7 @@ def calcola_current(
                 thresh,
                 cleansize,
                 plainsmap,
+                convergence,
                 ico,
                 calcd_file,
                 current_file,
@@ -420,6 +445,7 @@ def calcola_current(
         thresh,
         cleansize,
         plainsmap,
+        convergence,
         ico,
         calcd_file,
         current_file,
@@ -605,6 +631,7 @@ def main():
     ]
     epsilonx = float(options["epsilonx"])
     epsilony = float(options["epsilony"])
+    convergence = int(options["convergence"])
     outdir = os.path.abspath(options["outdir"])
 
     calcd_file = os.path.join(outdir, "calcd.dat")
@@ -658,6 +685,7 @@ def main():
             thresh,
             cleansize,
             plainsmap,
+            convergence,
             calcd_file,
             current_file,
         )

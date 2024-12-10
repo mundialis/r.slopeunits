@@ -106,9 +106,24 @@
 # % answer: 20
 # %end
 
+# %option
+# % key: convergence
+# % type: integer
+# % label: Convergence factor for MFD in r.watershed (1-10)
+# % description: 1 = most diverging flow, 10 = most converging flow. Recommended: 5
+# % answer: 5
+# %end
+
 # %flag
 # % key: g
 # % description: Generalize Slope Units vector layer
+# % guisection: flags
+# %end
+
+# %flag
+# % key: s
+# % label: SFD (D8) flow in r.watershed (default is MFD)
+# % description: SFD: single flow direction, MFD: multiple flow direction
 # % guisection: flags
 # %end
 
@@ -157,6 +172,7 @@ def slope_units(
     cvarmin=-1.0,
     red=-1,
     maxiter=0,
+    convergence=5
 ):
     """core slope unit calculation"""
 
@@ -250,11 +266,16 @@ def slope_units(
         grass.run_command(
             "g.remove", type="raster", name="slu_r_tmp", flags="f", quiet=True
         )
+        if flags['s']:
+            rwflags = "abs"
+        else:
+            rwflags = "ab"
         grass.run_command(
             "r.watershed",
             elevation=dem,
             hbasin="slu_r_tmp",
             thresh=thc,
+            convergence=convergence,
             flags="ab",
             quiet=True,
         )
@@ -757,6 +778,7 @@ def main():
     cvarmin = float(options["cvmin"])
     red = int(options["rf"])
     maxiter = int(options["maxiteration"])
+    convergence = int(options["convergence"])
 
     slope_units(
         dem,
@@ -769,6 +791,7 @@ def main():
         cvarmin,
         red,
         maxiter,
+        convergence
     )
     if options["slumapvect"]:
         export_as_vect(slumap, options["slumapvect"])

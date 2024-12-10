@@ -30,7 +30,7 @@
 # %option G_OPT_R_INPUT
 # % key: plainsmap
 # % description: Input raster map of alluvial plains
-# % required: yes
+# % required: no
 # %end
 
 # %option G_OPT_V_INPUT
@@ -198,10 +198,12 @@ def run_batch(
         f"Calculating slopeunits for cvmin={str(cvmin)} and "
         f"areamin={str(areamin)} ..."
     )
+    kwargs = {}
+    if plainsmap:
+        kwargs["plainsmap"] = f"{plainsmap}@{master_mapset}"
     grass.run_command(
         "r.slopeunits.create",
         demmap=f"{dem}@{master_mapset}",
-        plainsmap=f"{plainsmap}@{master_mapset}",
         slumap=slumap,
         thresh=thresh,
         areamin=areamin,
@@ -209,16 +211,17 @@ def run_batch(
         rf=redf,
         maxiteration=maxiteration,
         overwrite=True,
+        **kwargs,
     )
     grass.run_command(
         "r.slopeunits.clean",
         demmap=f"{dem}@{master_mapset}",
-        plainsmap=f"{plainsmap}@{master_mapset}",
         slumap=slumap,
         slumapclean=slumapclean,
         cleansize=cleansize,
         flags=["m"],
         overwrite=True,
+        **kwargs,
     )
 
     region = grass.parse_command("g.region", flags="pg")
@@ -586,6 +589,8 @@ def main():
     global rm_rasters, rm_vectors
     global COUNT_GLOBAL
 
+    # TODO: some input maps must be in the master_mapset and not in another mapset
+    # TODO: strip @mapset from these input maps
     dem = options["demmap"]
     plainsmap = options["plainsmap"]
     slumap = options["slumap"]

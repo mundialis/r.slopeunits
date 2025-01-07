@@ -30,7 +30,7 @@
 # %option G_OPT_R_INPUT
 # % key: plainsmap
 # % description: Input raster map of alluvial plains
-# % required: yes
+# % required: no
 # %end
 
 # %option G_OPT_V_INPUT
@@ -205,22 +205,24 @@ def run_batch(
     grass.run_command("g.mapsets", mapset=master_mapset, operation="add")
     grass.run_command(
         "g.region",
-        vect=f"{basin}@{master_mapset}",
-        align=f"{dem}@{master_mapset}",
+        vect=basin,
+        align=dem,
     )
 
     grass.message(
         f"Calculating slopeunits for cvmin={str(cvmin)} and "
         f"areamin={str(areamin)} ..."
     )
+    kwargs = {}
+    if plainsmap:
+        kwargs["plainsmap"] = plainsmap
     if flags["s"]:
         rwflags = "s"
     else:
         rwflags = ""
     grass.run_command(
         "r.slopeunits.create",
-        demmap=f"{dem}@{master_mapset}",
-        plainsmap=f"{plainsmap}@{master_mapset}",
+        demmap=dem,
         slumap=slumap,
         thresh=thresh,
         areamin=areamin,
@@ -230,16 +232,17 @@ def run_batch(
         convergence=convergence,
         flags=rwflags,
         overwrite=True,
+        **kwargs,
     )
     grass.run_command(
         "r.slopeunits.clean",
-        demmap=f"{dem}@{master_mapset}",
-        plainsmap=f"{plainsmap}@{master_mapset}",
+        demmap=dem,
         slumap=slumap,
         slumapclean=slumapclean,
         cleansize=cleansize,
         flags=["m"],
         overwrite=True,
+        **kwargs,
     )
 
     region = grass.parse_command("g.region", flags="pg")
@@ -612,8 +615,13 @@ def main():
     global rm_rasters, rm_vectors
     global COUNT_GLOBAL
 
+    # pass fully qualified names of input maps
     dem = options["demmap"]
+    if "@" not in dem:
+        dem = grass.find_file(dem, element="cell")["fullname"]
     plainsmap = options["plainsmap"]
+    if plainsmap and "@" not in plainsmap:
+        plainsmap = grass.find_file(plainsmap, element="cell")["fullname"]
     slumap = options["slumap"]
     slumapclean = options["slumapclean"]
     thresh = float(options["thresh"])
@@ -621,6 +629,8 @@ def main():
     maxiteration = int(options["maxiteration"])
     cleansize = options["cleansize"]
     basin = options["basin"]
+    if "@" not in basin:
+        basin = grass.find_file(basin, element="vector")["fullname"]
     x_lims = [
         float(options["cvmin"].split(",")[0]),
         float(options["cvmin"].split(",")[1]),
